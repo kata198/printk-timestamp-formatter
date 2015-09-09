@@ -1,5 +1,5 @@
 # printk-timestamp-formatter
-Utilities to view kmsg/printk/dmesg timestamps in local time and date or UTC which account for drift.
+Utilities to view kmsg/printk/dmesg timestamps in local time and date, UTC, or epoch seconds, which account for drift.
 
 The printk clock drifts, often a lot, from the local clock (the one ntp feeds). This can cause radically different and incorrect values if directly converted (like with dmesg -T available on some dmesg). This application supports noting and marking drift and using that to calculate much more accurate timestamps.
 
