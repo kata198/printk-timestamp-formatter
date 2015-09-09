@@ -73,9 +73,11 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
             @raises NotRecentEnoughDriftDelta - If onlyLatest is True and if a close enough sample (within #maxDriftRedetectTime seconds) is not present AND dmesgContents are provided, or a close enough sample is not present and /dev/kmsg is not writeable by current user. Exception message contains what the issue was and is suitable for printing.
 
             If maxDriftRedetectTime is 0, and there is no given delta, and one cannot be created, a NotRecentEnoughDriftDelta will be raised.
+
+            This starts with a drift of 0 at zero. This could vary, depending on how far out the first delta is placed, and how off the clock was on boot from being corrected later. You may want to ignore this, maybe not. The most accurate option is to add a printk drift marker after ntpdate service on the boot
     '''
 
-    drifts = {}
+    drifts = {0 : 0} # Start with 0 drift. You could disregard this or not, results will vary depending on how far out since boot the first delta note is placed, and how "off" the original clock was at boot. Best option is to place a drift marker in your init,
 
     procUptime = getSystemUptime()
     
