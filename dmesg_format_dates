@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2015 Tim Savannah under LGPLv3. See LICENSE for more information.
+# This application prints the kernel log (dmesg), converting the timestamps to local time or utc,
+#  adjusting for drift between the time systems.
+import sys
+
+import datetime
+import subprocess
+import time
+import printk_timestamp_converter
+
+defaultEncoding = sys.getdefaultencoding()
+if bytes == str:
+    # Python 2
+    def tostr(x):
+        if isinstance(x, unicode):
+            return x.encode(defaultEncoding)
+        else:
+            return str(x)
+else:
+    # Python 3
+    def tostr(x):
+        if isinstance(x, bytes) is False:
+            return str(x)
+        return x.decode(defaultEncoding)
+
+# TODO: Cleanup this printUsage, add other options
+def printUsage():
+    sys.stderr.write("dmesg_format_dates - Pipe in dmesg or a kmsg log file and it will replace timestamps with accurate ctime dates. If nothing is on stdin, it will run 'dmesg' as a sub process.\n Example: dmesg | dmesg_format_dates\n Example2: cat /var/log/dmesg.log | dmesg_format_dates\n Example 3: dmesg_format_dates\n\nPossible options:\n\t--drift=N\t\tAssume a constant drift of N.")
+
+MODE_LOCAL = 0
+MODE_UTC = 1
+MODE_TIMESTAMP = 2
+
+
+if __name__ == '__main__':
+
+    if '-u' in sys.argv:
+        mode = MODE_UTC
+        sys.argv.remove('-u')
+    elif '--utc' in sys.argv:
+        mode = MODE_UTC
+        sys.argv.remove('--utc')
+    elif '-t' in sys.argv:
+        mode = MODE_TIMESTAMP
+        sys.argv.remove('-t')
+    elif '--timestamp' in sys.argv:
+        mode = MODE_TIMESTAMP
+        sys.argv.remove('--timestamp')
+    elif '-l' in sys.argv:
+        mode = MODE_LOCAL
+        sys.argv.remove('-l')
+    elif '--local' in sys.argv:
+        mode = MODE_LOCAL
+        sys.argv.remove('--local')
+    else:
+        mode = MODE_LOCAL
+
+    if '--help' in sys.argv or '-h' in sys.argv or '-?' in sys.argv:
+        printUsage()
+        sys.exit(0)
+
+    currentDrift = None
+    drifts = {}
+    for arg in sys.argv[1:]:
+        if arg.startswith('--drift='):
+            try:
+                currentDrift = drifts['earliest'] = drifts['latest'] = int(arg[arg.index('=')+1:])
+            except ValueError:
+                sys.stderr.write('--drift takes an integer argument.\n')
+                sys.exit(1)
+        else:
+            printUsage()
+            sys.exit(1)
+
+    try:
+        if not sys.stdin.isatty():
+            contents = sys.stdin.read()
+            if currentDrift is None:
+                drifts = printk_timestamp_converter.printk_calculateDrifts(contents)
+        else:
+            pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
+            contents = tostr(pipe.stdout.read())
+            pipe.wait()
+            if currentDrift is None:
+                drifts = printk_timestamp_converter.printk_calculateDrifts()
+    except printk_timestamp_converter.NotRecentEnoughDriftDelta as e:
+        sys.stderr.write(str(e) + '\n')
+        sys.exit(1)
+
+    currentDrift = drifts['earliest']
+
+    currentUptime = printk_timestamp_converter.getSystemUptime()
+
+    lineNo = 0
+    for line in contents.split('\n'):
+        if lineNo in drifts:
+            currentDrift = drifts[lineNo]
+
+        matchObj = printk_timestamp_converter.PRINTK_WITH_TIME_PATTERN.match(line)
+        if matchObj:
+            printkSeconds = matchObj.groupdict()['printk_seconds']
+            if mode == MODE_TIMESTAMP:
+                timePortion = str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkSeconds, currentDrift, currentUptime))
+            elif mode == MODE_LOCAL:
+                timePortion = printk_timestamp_converter.printk_convertTimestampToDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+            else: # UTC
+                timePortion = printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+                
+            sys.stdout.write("[%s]%s\n" %(timePortion, line[line.index(']')+1:]) )
+        else:
+            sys.stdout.write(line + "\n")
+        lineNo += 1
+
+    # vim: sw=4 ts=4 expandtab

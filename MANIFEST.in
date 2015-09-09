@@ -1,0 +1,8 @@
+recursive-include printk_timestamp_converter *
+include ChangeLog
+include README.md
+include README.rst
+include LICENSE
+include setup.py
+include dmesg_format_dates
+include printk_time_to_date
