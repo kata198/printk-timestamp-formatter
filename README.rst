@@ -17,6 +17,12 @@ Applications
 
 TODO: Finish documentation
 
+
+**How can I configure my kmsg to log timestamps?**
+
+Set the value of /sys/module/printk/parameters/time to "Y" (e.x. echo "Y" > /sys/module/printk/parameters/time)
+
+
 Sample
 ------
 
