@@ -22,15 +22,22 @@ Sample
 
 Here is a sample showing the inaccuracies that can creep in:
 
-First, show that dmesg can't handle the printk drift
+
+*First, show that dmesg can't handle the printk drift*
 
 	[media@silverslave printk-timestamp-formatter]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; dmesg -T | grep 'Hello World' | tail -n1
+
 	Wed Sep  9 01:13:56 EDT 2015
+
 	[Wed Sep  9 01:14:31 2015] Hello World
 
-Next, show that dmesg\_format\_dates does work with the printk drifts
+
+*Next, show that dmesg_format_dates does work with the printk drifts*
 
 	[media@silverslave printk-timestamp-formatter]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; ./dmesg_format_dates | grep 'Hello World' | tail -n1
+
 	Wed Sep  9 01:14:11 EDT 2015
+
 	[Wed Sep  9 01:14:11 2015] Hello World
+
 
