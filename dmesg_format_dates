@@ -5,9 +5,7 @@
 #  adjusting for drift between the time systems.
 import sys
 
-import datetime
 import subprocess
-import time
 import printk_timestamp_converter
 
 defaultEncoding = sys.getdefaultencoding()
@@ -94,7 +92,10 @@ if __name__ == '__main__':
     currentUptime = printk_timestamp_converter.getSystemUptime()
 
     lineNo = 0
-    for line in contents.split('\n'):
+    contentsSplit = contents.split('\n')
+    if not contentsSplit[-1]:
+        contentsSplit = contentsSplit[:-1]
+    for line in contentsSplit:
         if lineNo in drifts:
             currentDrift = drifts[lineNo]
 

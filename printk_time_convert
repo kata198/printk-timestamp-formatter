@@ -4,9 +4,6 @@
 # This application converts a single timestamp with current drift, and optionally adds another drift marker if outside threshold
 import sys
 
-import datetime
-import subprocess
-import time
 import printk_timestamp_converter
 
 MODE_LOCAL = 0

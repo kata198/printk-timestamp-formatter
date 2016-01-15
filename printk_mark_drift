@@ -4,16 +4,8 @@
 # This application marks in the kmsg log the current drift between kernel uptime and clock time. The more often this is done, the more accurate the dates in between will be.
 import sys
 
-import datetime
-import subprocess
-import time
 import printk_timestamp_converter
 
-MODE_LOCAL = 0
-MODE_UTC = 1
-MODE_TIMESTAMP = 2
-
-# TODO: Add better usage
 def printUsage():
     sys.stderr.write("""printk_mark_drift
   Marks the current drift between the kernel's uptime and clock time in kmsg log.
