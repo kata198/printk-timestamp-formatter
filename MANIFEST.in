@@ -1,4 +1,4 @@
-recursive-include printk_timestamp_converter *
+recursive-include printk_timestamp_converter *.py
 include ChangeLog
 include README.md
 include README.rst
