@@ -20,7 +20,9 @@ PRINTK_WITH_TIME_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+)[\.][\d
 
 PRINTK_DRIFT_REDETECT_TIME = 12000 # seconds
 
-__all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch')
+__all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')
+
+
 
 class NotRecentEnoughDriftDelta(Exception):
     pass
@@ -122,29 +124,30 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
         
 
     # Otherwise, try to get a new one. usually, must be root.
-    try:   
-        kmsgBuff = open('/dev/kmsg', 'w')
-        kmsgBuff.write(PRINTK_DRIFT_MSG + ' ' + str(procUptime) + "\n")
-        kmsgBuff.close()
-    except:
+    try:
+        printk_markCurrentDrift()
+    except Exception as e:
         raise NotRecentEnoughDriftDelta("Cannot calculate printk drift: a close enough sample is not present. Please retry as root, or another user that can write to /dev/kmsg, after which you can resume unprivileged usage.")
     
     # Read contents again, reverse and find the line we just added. Calculate the delta and return
     time.sleep(.001)
     pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
-    lines = tostr(pipe.stdout.read())
+    content = tostr(pipe.stdout.read())
     pipe.wait()
     
 
-    lines = lines.split('\n')
-    lines.reverse()
+    lines = content.split('\n')
     lineNo = len(lines) - 1
-    for line in lines:
-        matchObj = PRINTK_DRIFT_PATTERN.match(line)
-        if matchObj is not None:
-            groupDict = matchObj.groupdict()
-            drifts['earliest'] = drifts['latest'] = drifts[lineNo] = drift
-            return drift
+    while lineNo >= 0:
+        line = lines[lineNo]
+        if line:
+            matchObj = PRINTK_DRIFT_PATTERN.match(line)
+            if matchObj is not None:
+                groupDict = matchObj.groupdict()
+                msgUptimeSeconds = int(groupDict['uptime_seconds'])
+                drift = int(groupDict['printk_seconds']) - msgUptimeSeconds 
+                drifts['earliest'] = drifts['latest'] = drifts[lineNo] = drift
+                return drifts
         lineNo -= 1
 
     raise NotRecentEnoughDriftDelta('Wrote latest drift but could not find it upon reopening.')
@@ -209,5 +212,14 @@ def printk_convertTimestampToUTCDatetime(timestamp, drift=None, uptime=None):
     msgTime = printk_convertTimestampToEpoch(timestamp, drift, uptime)
     dateTimeObj = datetime.datetime.utcfromtimestamp(msgTime)
     return dateTimeObj
+
+def printk_markCurrentDrift():
+    procUptime = getSystemUptime()
+    doRaise = False
+    kmsgBuff = open('/dev/kmsg', 'w')
+    kmsgBuff.write(PRINTK_DRIFT_MSG + ' ' + str(procUptime) + "\n")
+    kmsgBuff.close()
+
+    return procUptime
 
 # vim: sw=4 ts=4 expandtab
