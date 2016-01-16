@@ -4,6 +4,7 @@
 printk_convert_time
 - Cleanup help messages and add all possible arguments
 - Allow printk_convert_time to take multiple timestamps for conversion
+- Allow module to accept a floats and ints instead of a str for timestamp
 
 * 2.1.0 - Jan 15 2016 (release)
 - Fixed issue on reading and writing first mark at same time

@@ -173,12 +173,13 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
     '''
         printk_convertTimestampToEpoch - Converts a printk timestamp to a "seconds since epoch" time value
 
-        @param timestamp - String of the timestamp (e.x. [1234.14])
-        @param drift     - Given drift, or None to calculate a drift. If calling often, calculate drift first with printk_calculateDrift(s)
-        @param uptime    - Current uptime for calcluation, or None to calculate. If calling often, calcluate first with getSystemUptime
+        @param timestamp <str/float> - String/Float of the timestamp (e.x. [1234.14])
+        @param drift     <float> - Given drift, or None to calculate a drift. If calling often, calculate drift first with printk_calculateDrift(s)
+        @param uptime    <int> - Current uptime for calcluation, or None to calculate. If calling often, calcluate first with getSystemUptime
 
         @return <int> - seconds since epoch. Can be used for a datetime.fromtimestamp
     '''
+    timestamp = str(float(timestamp))
     timestamp = int(timestamp.split('.')[0])
 
     if drift is None:
@@ -187,6 +188,8 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
 
     if uptime is None:
         uptime = getSystemUptime()
+    else:
+        uptime = int(uptime)
 
     now = int(time.time())
 
