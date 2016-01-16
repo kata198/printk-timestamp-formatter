@@ -46,8 +46,10 @@ def printUsage():
            -u or --utc             Output time in UTC format.
            -e or --epoch           Output time in Unix Epoch format (seconds since Jan 1 1970 00:00:00)
 
+
+    If your kernel log does not contain timestamps, run: echo "Y" > /sys/module/printk/parameters/time
+
 ''')
-    sys.stderr.write("dmesg_format_dates - Pipe in dmesg or a kmsg log file and it will replace timestamps with accurate ctime dates. If nothing is on stdin, it will run 'dmesg' as a sub process.\n Example: dmesg | dmesg_format_dates\n Example2: cat /var/log/dmesg.log | dmesg_format_dates\n Example 3: dmesg_format_dates\n\nPossible options:\n\t--drift=N\t\tAssume a constant drift of N.\n\nThe times calculated are based on the closet drift marker, so the more often you mark drifts (either by running this program, which will mark if beyond a ")
 
 MODE_LOCAL = 0
 MODE_UTC = 1
