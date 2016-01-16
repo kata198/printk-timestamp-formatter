@@ -113,8 +113,8 @@ Set the value of /sys/module/printk/parameters/time to "Y" (e.x. echo "Y" > /sys
 Module
 ------
 
-printk_timestamp_converter is a module you can use directly.
+This package provides printk\_timestamp\_converter which is a module you can use directly.
 
-The pydoc documentation is available here: http://htmlpreview.github.io/?https://github.com/kata198/printk-timestamp-converter/blob/master/doc/printk_timestamp_converter.html 
+The pydoc documentation is available here: http://htmlpreview.github.io/?https://github.com/kata198/printk-timestamp-formatter/blob/master/doc/printk_timestamp_converter.html 
 
 
