@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package printk_timestamp_converter</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>printk_timestamp_converter</strong></big></big> (version 2.2.0)</font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href="printk_timestamp_converter.html">index</a><br</font></td></tr></table>
+    <p><tt>#&nbsp;Copyright&nbsp;(c)&nbsp;2015-2016&nbsp;Tim&nbsp;Savannah&nbsp;under&nbsp;LGPLv3.<br>
+#&nbsp;You&nbsp;should&nbsp;have&nbsp;received&nbsp;a&nbsp;copy&nbsp;of&nbsp;this&nbsp;with&nbsp;this&nbsp;distribution&nbsp;as&nbsp;LICENSE<br>
+#<br>
+#&nbsp;This&nbsp;provides&nbsp;a&nbsp;library&nbsp;for&nbsp;dealing&nbsp;with&nbsp;printk&nbsp;drift&nbsp;between&nbsp;actual&nbsp;uptime.<br>
+#&nbsp;&nbsp;&nbsp;This&nbsp;will&nbsp;provide&nbsp;a&nbsp;reasonable&nbsp;estimate&nbsp;for&nbsp;recent&nbsp;timestamps,&nbsp;but&nbsp;not&nbsp;a&nbsp;completely&nbsp;accurate&nbsp;picture&nbsp;for&nbsp;all&nbsp;timestamps&nbsp;(can&nbsp;drift&nbsp;by&nbsp;up&nbsp;to&nbsp;an&nbsp;hour&nbsp;in&nbsp;a&nbsp;month's&nbsp;time).<br>
+#&nbsp;&nbsp;&nbsp;For&nbsp;accurate&nbsp;timing,&nbsp;this&nbsp;would&nbsp;need&nbsp;to&nbsp;constantly&nbsp;collect&nbsp;samples.<br>
+#&nbsp;&nbsp;&nbsp;Alternativly,&nbsp;it&nbsp;can&nbsp;use&nbsp;every&nbsp;sample&nbsp;that&nbsp;IS&nbsp;present,&nbsp;and&nbsp;create&nbsp;a&nbsp;set&nbsp;of&nbsp;ranges.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="printk_timestamp_converter.html#NotRecentEnoughDriftDelta">NotRecentEnoughDriftDelta</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="NotRecentEnoughDriftDelta">class <strong>NotRecentEnoughDriftDelta</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#NotRecentEnoughDriftDelta">NotRecentEnoughDriftDelta</a>&nbsp;-&nbsp;<a href="builtins.html#Exception">Exception</a>&nbsp;raised&nbsp;when&nbsp;a&nbsp;close&nbsp;enough&nbsp;drift&nbsp;market&nbsp;cannot&nbsp;be&nbsp;found,&nbsp;and&nbsp;one&nbsp;cannot&nbsp;be&nbsp;created&nbsp;because&nbsp;you&nbsp;cannot&nbsp;write&nbsp;to&nbsp;/dev/kmsg.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="printk_timestamp_converter.html#NotRecentEnoughDriftDelta">NotRecentEnoughDriftDelta</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-getSystemUptime"><strong>getSystemUptime</strong></a>()</dt><dd><tt>getSystemUptime&nbsp;-&nbsp;Gets&nbsp;system&nbsp;uptime&nbsp;in&nbsp;seconds<br>
+&nbsp;<br>
+@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;Seconds&nbsp;of&nbsp;uptime</tt></dd></dl>
+ <dl><dt><a name="-printk_calculateCurrentDrift"><strong>printk_calculateCurrentDrift</strong></a>(dmesgContents=None, maxDriftRedetectTime=12000)</dt><dd><tt>printk_calculateCurrentDrift&nbsp;-&nbsp;Convienance&nbsp;function&nbsp;for&nbsp;printk_calculateDrifts&nbsp;which&nbsp;just&nbsp;returns&nbsp;the&nbsp;latest&nbsp;drift.<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;will&nbsp;try&nbsp;to&nbsp;add&nbsp;a&nbsp;new&nbsp;entry&nbsp;if&nbsp;the&nbsp;last&nbsp;delta&nbsp;is&nbsp;outside&nbsp;the&nbsp;given&nbsp;threshold<br>
+&nbsp;<br>
+@see&nbsp;printk_calculateDrifts<br>
+&nbsp;<br>
+@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;Latest&nbsp;delta</tt></dd></dl>
+ <dl><dt><a name="-printk_calculateDrifts"><strong>printk_calculateDrifts</strong></a>(dmesgContents=None, onlyLatest=False, maxDriftRedetectTime=12000)</dt><dd><tt>printk_calculateDrifts&nbsp;-&nbsp;Calculates&nbsp;the&nbsp;drifts&nbsp;for&nbsp;a&nbsp;dmesg&nbsp;log<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;dmesgContents&nbsp;&lt;str/None&gt;&nbsp;-&nbsp;Contents&nbsp;of&nbsp;dmesg,&nbsp;or&nbsp;None&nbsp;to&nbsp;fetch&nbsp;new<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;onlyLatest&nbsp;&nbsp;&lt;bool&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;Only&nbsp;fetch&nbsp;the&nbsp;most&nbsp;recent.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;maxDriftRedetectTime&nbsp;&lt;int&gt;&nbsp;-&nbsp;Number&nbsp;of&nbsp;seconds&nbsp;that&nbsp;represents&nbsp;max&nbsp;tolerance&nbsp;between&nbsp;printk&nbsp;detections.&nbsp;If&nbsp;set&nbsp;to&nbsp;0,&nbsp;any&nbsp;present<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delta&nbsp;is&nbsp;okay.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;will&nbsp;add&nbsp;an&nbsp;entry&nbsp;if&nbsp;one&nbsp;has&nbsp;not&nbsp;been&nbsp;inserted&nbsp;in&nbsp;the&nbsp;last&nbsp;PRINTK_DRIFT_REDIRECT_TIME&nbsp;seconds.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;entry&nbsp;compares&nbsp;the&nbsp;printk&nbsp;"time"&nbsp;with&nbsp;current&nbsp;uptime,&nbsp;to&nbsp;detect&nbsp;a&nbsp;drift.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;function&nbsp;returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;each&nbsp;line&nbsp;number&nbsp;containing&nbsp;a&nbsp;drift&nbsp;delta&nbsp;to&nbsp;that&nbsp;delta.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@return&nbsp;dict&nbsp;-&nbsp;key&nbsp;is&nbsp;line&nbsp;number&nbsp;&lt;0-origin&gt;&nbsp;containing&nbsp;a&nbsp;drift&nbsp;delta,&nbsp;and&nbsp;value&nbsp;is&nbsp;that&nbsp;delta.&nbsp;Also&nbsp;an&nbsp;entry&nbsp;"latest"&nbsp;which&nbsp;contains&nbsp;most&nbsp;recent&nbsp;drift,&nbsp;and&nbsp;"earliest"&nbsp;which&nbsp;contains&nbsp;the&nbsp;oldest&nbsp;drift.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Use&nbsp;these&nbsp;results&nbsp;to&nbsp;apply&nbsp;compounded&nbsp;deltas&nbsp;as&nbsp;you&nbsp;reach&nbsp;different&nbsp;lines&nbsp;in&nbsp;the&nbsp;output,&nbsp;or&nbsp;just&nbsp;use&nbsp;latest&nbsp;for&nbsp;a&nbsp;fuzzier&nbsp;view.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;@raises&nbsp;<a href="#NotRecentEnoughDriftDelta">NotRecentEnoughDriftDelta</a>&nbsp;-&nbsp;If&nbsp;onlyLatest&nbsp;is&nbsp;True&nbsp;and&nbsp;if&nbsp;a&nbsp;close&nbsp;enough&nbsp;sample&nbsp;(within&nbsp;#maxDriftRedetectTime&nbsp;seconds)&nbsp;is&nbsp;not&nbsp;present&nbsp;AND&nbsp;dmesgContents&nbsp;are&nbsp;provided,&nbsp;or&nbsp;a&nbsp;close&nbsp;enough&nbsp;sample&nbsp;is&nbsp;not&nbsp;present&nbsp;and&nbsp;/dev/kmsg&nbsp;is&nbsp;not&nbsp;writeable&nbsp;by&nbsp;current&nbsp;user.&nbsp;<a href="builtins.html#Exception">Exception</a>&nbsp;message&nbsp;contains&nbsp;what&nbsp;the&nbsp;issue&nbsp;was&nbsp;and&nbsp;is&nbsp;suitable&nbsp;for&nbsp;printing.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;maxDriftRedetectTime&nbsp;is&nbsp;0,&nbsp;and&nbsp;there&nbsp;is&nbsp;no&nbsp;given&nbsp;delta,&nbsp;and&nbsp;one&nbsp;cannot&nbsp;be&nbsp;created,&nbsp;a&nbsp;<a href="#NotRecentEnoughDriftDelta">NotRecentEnoughDriftDelta</a>&nbsp;will&nbsp;be&nbsp;raised.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;starts&nbsp;with&nbsp;a&nbsp;drift&nbsp;of&nbsp;0&nbsp;at&nbsp;zero.&nbsp;This&nbsp;could&nbsp;vary,&nbsp;depending&nbsp;on&nbsp;how&nbsp;far&nbsp;out&nbsp;the&nbsp;first&nbsp;delta&nbsp;is&nbsp;placed,&nbsp;and&nbsp;how&nbsp;off&nbsp;the&nbsp;clock&nbsp;was&nbsp;on&nbsp;boot&nbsp;from&nbsp;being&nbsp;corrected&nbsp;later.&nbsp;You&nbsp;may&nbsp;want&nbsp;to&nbsp;ignore&nbsp;this,&nbsp;maybe&nbsp;not.&nbsp;The&nbsp;most&nbsp;accurate&nbsp;option&nbsp;is&nbsp;to&nbsp;add&nbsp;a&nbsp;printk&nbsp;drift&nbsp;marker&nbsp;after&nbsp;ntpdate&nbsp;service&nbsp;on&nbsp;the&nbsp;boot</tt></dd></dl>
+ <dl><dt><a name="-printk_convertTimestampToDatetime"><strong>printk_convertTimestampToDatetime</strong></a>(timestamp, drift=None, uptime=None)</dt><dd><tt>printk_convertTimestampToDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;local&nbsp;datetime&nbsp;object.<br>
+&nbsp;<br>
+@see&nbsp;printk_convertTimestampToEpoch<br>
+&nbsp;<br>
+@return&nbsp;-&nbsp;&lt;datetime.datetime&gt;&nbsp;-&nbsp;Datetime&nbsp;object&nbsp;in&nbsp;local&nbsp;time</tt></dd></dl>
+ <dl><dt><a name="-printk_convertTimestampToEpoch"><strong>printk_convertTimestampToEpoch</strong></a>(timestamp, drift=None, uptime=None)</dt><dd><tt>printk_convertTimestampToEpoch&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;"seconds&nbsp;since&nbsp;epoch"&nbsp;time&nbsp;value<br>
+&nbsp;<br>
+@param&nbsp;timestamp&nbsp;&lt;str/float&gt;&nbsp;-&nbsp;String/Float&nbsp;of&nbsp;the&nbsp;timestamp&nbsp;(e.x.&nbsp;[1234.14])<br>
+@param&nbsp;drift&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;float&gt;&nbsp;-&nbsp;Given&nbsp;drift,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate&nbsp;a&nbsp;drift.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calculate&nbsp;drift&nbsp;first&nbsp;with&nbsp;printk_calculateDrift(s)<br>
+@param&nbsp;uptime&nbsp;&nbsp;&nbsp;&nbsp;&lt;int&gt;&nbsp;-&nbsp;Current&nbsp;uptime&nbsp;for&nbsp;calcluation,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calcluate&nbsp;first&nbsp;with&nbsp;getSystemUptime<br>
+&nbsp;<br>
+@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;seconds&nbsp;since&nbsp;epoch.&nbsp;Can&nbsp;be&nbsp;used&nbsp;for&nbsp;a&nbsp;datetime.fromtimestamp</tt></dd></dl>
+ <dl><dt><a name="-printk_convertTimestampToUTCDatetime"><strong>printk_convertTimestampToUTCDatetime</strong></a>(timestamp, drift=None, uptime=None)</dt><dd><tt>printk_convertTimestampToUTCDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;utc&nbsp;datetime&nbsp;object<br>
+&nbsp;<br>
+@see&nbsp;printk_convertTimestampToEpoch<br>
+&nbsp;<br>
+@return&nbsp;-&nbsp;&lt;datetime.datetime&gt;&nbsp;-&nbsp;Datetime&nbsp;object&nbsp;in&nbsp;utc&nbsp;time</tt></dd></dl>
+ <dl><dt><a name="-printk_markCurrentDrift"><strong>printk_markCurrentDrift</strong></a>()</dt><dd><tt>printk_markCurrentDrift&nbsp;-&nbsp;Mark&nbsp;the&nbsp;current&nbsp;uptime&nbsp;in&nbsp;kmsg&nbsp;for&nbsp;calcuation&nbsp;of&nbsp;drift.&nbsp;The&nbsp;more&nbsp;often&nbsp;you&nbsp;do&nbsp;this,&nbsp;the&nbsp;more&nbsp;accurate&nbsp;your&nbsp;timestamps&nbsp;in&nbsp;between&nbsp;will&nbsp;be.<br>
+&nbsp;<br>
+@return&nbsp;-&nbsp;Current&nbsp;uptime&nbsp;in&nbsp;seconds</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>__all__</strong> = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift', 'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')<br>
+<strong>__version_tuple__</strong> = (2, 2, 0)</td></tr></table>
+</body></html>
