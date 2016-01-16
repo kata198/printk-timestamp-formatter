@@ -1,3 +1,10 @@
+* 2.2.0 - Jan 16 2016 
+- Update READMEs and fillout setup.py
+- Change -t and --timestamp to -e and --epoch in dmesg_format_dates and
+printk_convert_time
+- Cleanup help messages and add all possible arguments
+- Allow printk_convert_time to take multiple timestamps for conversion
+
 * 2.1.0 - Jan 15 2016 (release)
 - Fixed issue on reading and writing first mark at same time
 - Split out marking current drift into separate function

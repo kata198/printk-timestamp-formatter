@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2015 Tim Savannah under LGPLv3. See LICENSE for more information.
+# Copyright (c) 2015-2016 Tim Savannah under LGPLv3. See LICENSE for more information.
 # This application converts a single timestamp with current drift, and optionally adds another drift marker if outside threshold
 import sys
 
@@ -8,50 +8,68 @@ import printk_timestamp_converter
 
 MODE_LOCAL = 0
 MODE_UTC = 1
-MODE_TIMESTAMP = 2
+MODE_EPOCH = 2
 
 # TODO: Add better usage
 def printUsage():
-    sys.stderr.write("printk_time_convert: Converts printk timestamps, which may be inaccurate, to human readable dates that are accurate.\n  Usage: printk_time_convert (options) [timestamp]\n")
+    sys.stderr.write("""printk_time_convert (Options) [printk1 timestamp] (optional: additional timestamps)
+
+  Converts printk timestamps, which may be inaccurate, to human readable dates that are accurate.
+
+       Output Formats (pick one):
+       
+           -l or --local           Output time on LOCAL format (DEFAULT).
+           -u or --utc             Output time in UTC format.
+           -e or --epoch           Output time in Unix Epoch format (seconds since Jan 1 1970 00:00:00)
+
+
+See dmesg_format_dates --help for more info.
+
+For each timestamp given, the conversion will be printed, one per line.
+
+""")
 
 
 if __name__ == '__main__':
-    if '--help' in sys.argv or '-h' in sys.argv or '-?' in sys.argv:
-        printUsage()
-        sys.exit(0)
 
-    if '-u' in sys.argv:
-        mode = MODE_UTC
-        sys.argv.remove('-u')
-    elif '--utc' in sys.argv:
-        mode = MODE_UTC
-        sys.argv.remove('--utc')
-    elif '-t' in sys.argv:
-        mode = MODE_TIMESTAMP
-        sys.argv.remove('-t')
-    elif '--timestamp' in sys.argv:
-        mode = MODE_TIMESTAMP
-        sys.argv.remove('--timestamp')
-    elif '-l' in sys.argv:
-        mode = MODE_LOCAL
-        sys.argv.remove('-l')
-    elif '--local' in sys.argv:
-        mode = MODE_LOCAL
-        sys.argv.remove('--local')
-    else:
-        mode = MODE_LOCAL
+    args = sys.argv[1:]
 
-            
-    if len(sys.argv) != 2:
+    mode = MODE_LOCAL
+
+    toConvert = []
+
+    for arg in args:
+        if arg in ('--help', '-h', '-?'):
+            printUsage()
+            sys.exit(0)
+        elif arg in ('-u', '--utc'):
+            mode = MODE_UTC
+        elif arg in ('-l', '--local'):
+            mode = MODE_LOCAL
+        elif arg in ('-e', '--epoch'):
+            mode = MODE_EPOCH
+        else:
+            try:
+                float(arg)
+                toConvert.append(arg)
+            except ValueError:
+                sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
+                printUsage()
+                sys.exit(1)
+
+    if len(toConvert) == 0:
+        sys.stderr.write('Missing printk timestamp to convert.\n\n')
         printUsage()
         sys.exit(1)
 
-    if mode == MODE_LOCAL:
-        dateStr = printk_timestamp_converter.printk_convertTimestampToDatetime(sys.argv[1]).ctime()
-    elif mode == MODE_UTC:
-        dateStr = printk_timestamp_converter.printk_convertTimestampToUTCDatetime(sys.argv[1]).ctime()
-    else: # MODE_TIMESTAMP
-        dateStr = str(printk_timestamp_converter.printk_convertTimestampToEpoch(sys.argv[1]))
+    for printkTimestamp in toConvert:
+        if mode == MODE_LOCAL:
+            dateStr = printk_timestamp_converter.printk_convertTimestampToDatetime(printkTimestamp).ctime()
+        elif mode == MODE_UTC:
+            dateStr = printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkTimestamp).ctime()
+        else: # MODE_EPOCH
+            dateStr = str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkTimestamp))
         
-    sys.stdout.write(dateStr + '\n')
+        sys.stdout.write(dateStr + '\n')
+
 # vim: sw=4 ts=4 expandtab

@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Tim Savannah under LGPLv3.
+# Copyright (c) 2015-2016 Tim Savannah under LGPLv3.
 # You should have received a copy of this with this distribution as LICENSE
 #
 # This provides a library for dealing with printk drift between actual uptime.
@@ -22,11 +22,14 @@ PRINTK_DRIFT_REDETECT_TIME = 12000 # seconds
 
 __all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')
 
-__version__ = '2.1.1'
-__version_tuple__ = (2, 1, 1)
+__version__ = '2.2.0'
+__version_tuple__ = (2, 2, 0)
 
 
 class NotRecentEnoughDriftDelta(Exception):
+    '''
+        NotRecentEnoughDriftDelta - Exception raised when a close enough drift market cannot be found, and one cannot be created because you cannot write to /dev/kmsg.
+    '''
     pass
 
 def getSystemUptime():
@@ -216,6 +219,11 @@ def printk_convertTimestampToUTCDatetime(timestamp, drift=None, uptime=None):
     return dateTimeObj
 
 def printk_markCurrentDrift():
+    '''
+        printk_markCurrentDrift - Mark the current uptime in kmsg for calcuation of drift. The more often you do this, the more accurate your timestamps in between will be.
+
+        @return - Current uptime in seconds
+    '''
     procUptime = getSystemUptime()
     doRaise = False
     kmsgBuff = open('/dev/kmsg', 'w')
