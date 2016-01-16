@@ -31,7 +31,7 @@ Here is a sample showing the inaccuracies that can creep in:
 
 *First, show that dmesg can't handle the printk drift*
 
-	[media@silverslave printk-timestamp-formatter]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; dmesg -T | grep 'Hello World' | tail -n1
+	[cmd]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; dmesg -T | grep 'Hello World' | tail -n1
 
 	Wed Sep  9 01:13:56 EDT 2015
 
@@ -40,7 +40,7 @@ Here is a sample showing the inaccuracies that can creep in:
 
 *Next, show that dmesg_format_dates does work with the printk drifts*
 
-	[media@silverslave printk-timestamp-formatter]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; ./dmesg_format_dates | grep 'Hello World' | tail -n1
+	[cmd]$ date; sudo bash -c 'echo "Hello World" > /dev/kmsg'; ./dmesg_format_dates | grep 'Hello World' | tail -n1
 
 	Wed Sep  9 01:14:11 EDT 2015
 

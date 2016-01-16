@@ -11,7 +11,7 @@ if __name__ == '__main__':
         long_descrption = ''
 
     setup(name='printk-timestamp-converter',
-            version='2.1.0',
+            version='2.1.1',
             description='Utility for printing dmesg/kmsg/printk timestamps, taking into account drift.',       
             long_description=long_description,
             author='Tim Savannah',
