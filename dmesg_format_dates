@@ -118,6 +118,14 @@ if __name__ == '__main__':
 
     lineNo = 0
     contentsSplit = contents.split('\n')
+
+    if mode == MODE_EPOCH:
+        getTimePortion = lambda printkSeconds, currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkSeconds, currentDrift, currentUptime))
+    elif mode == MODE_LOCAL:
+        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+    else:
+        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+
     if not contentsSplit[-1]:
         contentsSplit = contentsSplit[:-1]
     for line in contentsSplit:
@@ -127,16 +135,17 @@ if __name__ == '__main__':
         matchObj = printk_timestamp_converter.PRINTK_WITH_TIME_PATTERN.match(line)
         if matchObj:
             printkSeconds = matchObj.groupdict()['printk_seconds']
-            if mode == MODE_EPOCH:
-                timePortion = str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkSeconds, currentDrift, currentUptime))
-            elif mode == MODE_LOCAL:
-                timePortion = printk_timestamp_converter.printk_convertTimestampToDatetime(printkSeconds, currentDrift, currentUptime).ctime()
-            else: # UTC
-                timePortion = printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkSeconds, currentDrift, currentUptime).ctime()
-                
-            sys.stdout.write("[%s]%s\n" %(timePortion, line[line.index(']')+1:]) )
+            timePortion = getTimePortion(printkSeconds, currentDrift)
+            
+            try:   
+                sys.stdout.write("[%s]%s\n" %(timePortion, line[line.index(']')+1:]) )
+            except:
+                break
         else:
-            sys.stdout.write(line + "\n")
+            try:
+                sys.stdout.write(line + "\n")
+            except:
+                break
         lineNo += 1
 
     # vim: sw=4 ts=4 expandtab

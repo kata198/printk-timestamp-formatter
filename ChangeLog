@@ -1,3 +1,7 @@
+* 2.2.1 - Mar 3 2016
+- Fix usage of dmesg_format_dates with head (no longer prints warning)
+- Simplify main loop of dmesg_format_dates to omit a comparison
+
 * 2.2.0 - Jan 16 2016 
 - Expand READMEs and fillout setup.py
 - Change -t and --timestamp to -e and --epoch in dmesg_format_dates and
