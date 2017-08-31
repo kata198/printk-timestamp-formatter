@@ -45,6 +45,8 @@ drift, and how much the clock has drifted at that point.
 
 * Fix typo preventing -h from printing help in dmesg_format_dates
 
+* Fix MANIFEST.in missing printk_mark_drift
+
 * 2.2.1 - Mar 3 2016
 - Fix usage of dmesg_format_dates with head (no longer prints warning)
 - Simplify main loop of dmesg_format_dates to omit a comparison
