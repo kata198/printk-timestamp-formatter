@@ -39,6 +39,10 @@ def printUsage():
 
     You may either run this program without providing input (in which it will call "dmesg"), or pipe in a kmsg log file/source.
 
+       Options:
+
+           --no-mark               Do not attempt to place a marker, even if a recent sample is not found.
+
        Output Formats (pick one):
        
            -l or --local           Output time on LOCAL format (DEFAULT).
@@ -99,6 +103,8 @@ if __name__ == '__main__':
     currentDrift = None
     drifts = {}
 
+    shouldMarkIfRequired = True
+
     for arg in args:
         if arg in ('-u', '--utc'):
             mode = MODE_UTC
@@ -115,6 +121,8 @@ if __name__ == '__main__':
         elif arg in ('--help', '-h', '-?'):
             printUsage()
             sys.exit(0)
+        elif arg == '--no-mark':
+            shouldMarkIfRequired = False
         else:
             sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
             printUsage()
@@ -122,6 +130,12 @@ if __name__ == '__main__':
 
 
     funcArgs = []
+    funcKwargs = {}
+    if shouldMarkIfRequired:
+        funcKwargs['markIfRequired'] = True
+    else:
+        funcKwargs['markIfRequired'] = False
+
 
     try:
 
@@ -143,7 +157,7 @@ if __name__ == '__main__':
 
     # Gather any drifts
     try:
-        drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, maxDriftRedetectTime=0)
+        drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwargs, maxDriftRedetectTime=0)
     except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
         sys.stderr.write('ERROR: %s\n' %( str(nre).replace('.', '.\nERROR: ') ) )
         sys.exit(1)

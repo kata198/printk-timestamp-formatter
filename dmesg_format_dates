@@ -45,6 +45,8 @@ def printUsage():
            --no-warnings           Disable warnings being repeated on stdout at end of output (stdout).
                                      The warnings will still be output to stderr before any output on stdout
 
+           --no-mark               Do not attempt to place a marker, even if a recent sample is not found.
+
        Output Formats (pick one):
        
            -l or --local           Output time on LOCAL format (DEFAULT).
@@ -114,6 +116,8 @@ if __name__ == '__main__':
 
     shouldRepeatWarnings = True
 
+    shouldMarkIfRequired = True
+
     # PARE ARGS
     for arg in args:
         if arg in ('-u', '--utc'):
@@ -139,6 +143,8 @@ if __name__ == '__main__':
                 sys.exit(1)
         elif arg == '--no-warnings':
             shouldRepeatWarnings = False
+        elif arg == '--no-mark':
+            shouldMarkIfRequired = False
 
         else:
             sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
@@ -149,6 +155,13 @@ if __name__ == '__main__':
     # Yes these two can be combined, but "explicit better than implicit"
 
     funcArgs = []
+    funcKwargs = {}
+
+    if shouldMarkIfRequired:
+        funcKwargs['markIfRequired'] = True
+    else:
+        funcKwargs['markIfRequired'] = False
+
 
     try:
 
@@ -177,14 +190,14 @@ if __name__ == '__main__':
     if currentDrift is None:
         # No drift provided, try to calculate it (and possibly mark if root and not pre-provided via stdin)
         try:
-            drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs)
+            drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwargs)
 
         except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
             # Failed to calculate drift because not root and no recent marker found
 
             # Try again to detect if ANY marker is present
             try:
-                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, maxDriftRedetectTime=0)
+                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwargs, maxDriftRedetectTime=0)
 
                 addWarning('## WARNING: A "recent" drift was not detected (within %d seconds), but an older marker was found.\n')
                 addWarning('## WARNING:  It is recommended that you re-run this command as root (if not parsing from a file),\n')
