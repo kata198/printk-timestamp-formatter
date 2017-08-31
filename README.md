@@ -1,7 +1,17 @@
 # printk-timestamp-formatter
-Utilities to view kmsg/printk/dmesg timestamps in local time and date, UTC, or epoch seconds, which account for drift.
+Utilities to view kmsg/printk/dmesg timestamps in local time and date, UTC, or epoch seconds, which **account for drift.**
 
 The printk clock drifts, often a lot, from the local clock (the one ntp feeds). This can cause radically different and incorrect values if directly converted (like with dmesg -T available on some dmesg). This application supports noting and marking drift and using that to calculate much more accurate timestamps.
+
+
+Why not "dmesg -T"
+------------------
+
+As noted, dmesg -T is the same as dmesg\_format\_dates --drift=0  and become inaccurate over time, because the tick clock is affected by frequency scaling etc.
+
+Thus, it is recommended to have a cron job that runs *printk\_mark\_drift* as described below, maybe on half-day intervals to keep things accurate. More or less depending on precision desired and average drift of system.
+
+You can use the *dmesg\_get\_drifts* application to show all current marked drifts to gauge how inaccurate your systems clock is
 
 
 Sample
@@ -25,7 +35,10 @@ Next, show that dmesg\_format\_dates does work with the printk drifts
 Applications
 ------------
 
-**dmesg_format_dates**
+TODO: Update these help messages and complete the dmesg\_get\_drifts doc
+
+
+**dmesg\_format\_dates**
 
 This application runs "dmesg" (or you can pipe in a pre-recorded dmesg, e.g. from logs) and uses the calculated drifts to derive accurate timestamps. If outside of the threshold (default 12000 seconds), a new drift marker will be added, unless you specify a fixed drift.
 
@@ -50,6 +63,10 @@ This application runs "dmesg" (or you can pipe in a pre-recorded dmesg, e.g. fro
 				-u or --utc             Output time in UTC format.
 				-e or --epoch           Output time in Unix Epoch format (seconds since Jan 1 1970 00:00:00)
 
+
+**dmesg\_get\_drifts**
+
+This application will show the drifts within the dmesg log (the timestamp, how much the clock has drifted at that point).
 
 
 **printk_time_convert**
