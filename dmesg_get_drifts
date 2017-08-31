@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2017 Tim Savannah under LGPLv3. See LICENSE for more information.
+#
+#  This application scans for all drift markers and reports on how much drift at each point
+
+import errno
+import sys
+import subprocess
+import traceback
+
+import printk_timestamp_converter
+
+defaultEncoding = sys.getdefaultencoding()
+if bytes == str:
+    # Python 2
+    def tostr(x):
+        if isinstance(x, unicode):
+            return x.encode(defaultEncoding)
+        else:
+            return str(x)
+else:
+    # Python 3
+    def tostr(x):
+        if isinstance(x, bytes) is False:
+            return str(x)
+        return x.decode(defaultEncoding)
+
+# TODO: Cleanup this printUsage, add other options
+def printUsage():
+    sys.stderr.write('''dmesg_get_drifts (Options) - Scan kernel log and report on noted drifts.
+    
+    
+    The kernel logs messages with a timestamp of seconds since boot, which is an independent timesource from standard uptime and clocks, and often drifts by several seconds.
+
+    This program takes account for adjusting time with those drifts. It will add a drift marker if one hasn't been added since a certain threshold (or use the printk_mark_drift program to explicitly add one).
+
+    Timestamps are calculated using the drifts marked. The more you mark, the more accurate your timestamps will be.
+
+    You may either run this program without providing input (in which it will call "dmesg"), or pipe in a kmsg log file/source.
+
+       Output Formats (pick one):
+       
+           -l or --local           Output time on LOCAL format (DEFAULT).
+           -u or --utc             Output time in UTC format.
+           -e or --epoch           Output time in Unix Epoch format (seconds since Jan 1 1970 00:00:00)
+
+
+    If your kernel log does not contain timestamps, run: echo "Y" > /sys/module/printk/parameters/time
+
+''')
+
+MODE_LOCAL = 0
+MODE_UTC = 1
+MODE_EPOCH = 2
+
+pickedAMode = False
+
+def err_tooManyModes():
+    sys.stderr.write('You provided multiple modes (UTC, LOCAL, or EPOCH) as output format. Please pick one.\n')
+    sys.exit(1)
+
+
+
+def readAllData(stream):
+    
+    if sys.version_info.major == 2:
+        POSSIBLE_EOFS = ('', u'')
+    else:
+        POSSIBLE_EOFS = ('', b'')
+    
+    isStreamClosed = lambda theStream : getattr(theStream, 'closed', False)
+
+    if isStreamClosed(stream):
+        return '' # Note, does not check the stream codec, but doesn't matter for this app
+
+    retLst = []
+
+    while True:
+        
+        nextContents = stream.read()
+
+        if isStreamClosed(stream) or nextContents in POSSIBLE_EOFS:
+            break
+        
+        retLst.append(nextContents)
+
+    if not retLst:
+        return ''
+
+    # Ensure we join with the correct type
+    return type(retLst[0])().join(retLst)
+
+
+if __name__ == '__main__':
+    mode = MODE_LOCAL
+
+    args = sys.argv[1:]
+    currentDrift = None
+    drifts = {}
+
+    for arg in args:
+        if arg in ('-u', '--utc'):
+            mode = MODE_UTC
+            if pickedAMode is True:
+                err_tooManyModes()
+            pickedAMode = True
+        elif arg in ('--local', '-l'):
+            mode = MODE_LOCAL
+            if pickedAMode is True:
+                err_tooManyModes()
+            pickedAMode = True
+        elif arg in ('-e', '--epoch'):
+            mode = MODE_EPOCH
+        elif arg in ('--help', '-h', '-?'):
+            printUsage()
+            sys.exit(0)
+        else:
+            sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
+            printUsage()
+            sys.exit(1)
+
+
+    funcArgs = []
+
+    try:
+
+        if not sys.stdin.isatty():
+            # If we are reading from a terminal, collect the data
+
+            contents = readAllData(sys.stdin)
+
+            funcArgs.append(contents)
+        else:
+            pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
+            contents = tostr(readAllData(pipe.stdout))
+            pipe.wait()
+    except Exception as e:
+        excInfo = sys.exc_info()
+        sys.stderr.write('Error collecting dmesg data.\n%s:  %s\n\n' %( type(e).__name__, str(e)))
+        traceback.print_exception(*excInfo)
+        sys.exit( errno.EIO )
+
+    # Gather any drifts
+    try:
+        drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, maxDriftRedetectTime=0)
+    except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
+        sys.stderr.write('ERROR: %s\n' %( str(nre).replace('.', '.\nERROR: ') ) )
+        sys.exit(1)
+
+    
+    sortedKeys = sorted( [ key for key in drifts.keys() if isinstance(key, (int, float))] )
+
+    currentUptime = printk_timestamp_converter.getSystemUptime()
+    currentDrift = drifts['earliest']
+
+    if mode == MODE_EPOCH:
+        getTimePortion = lambda printkSeconds, currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkSeconds, currentDrift, currentUptime))
+    elif mode == MODE_LOCAL:
+        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+    else:
+        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+
+
+    contentsSplit = contents.split('\n')
+    if not contentsSplit[-1]:
+        contentsSplit = contentsSplit[:-1]
+
+
+    contentsSplitLen = len(contentsSplit)
+
+    # Naybe save some memory
+    del contents
+
+    # We are not rewriting every line here, so we only care about the drift lines
+    driftLineNumbers = sorted( [ _lineNo for _lineNo in drifts.keys() if isinstance(_lineNo, int) ] )
+
+    didWarnNoTimestamps = False
+
+    # Iterate over lines scanning for our drift markers
+    for lineNo in driftLineNumbers:
+    
+        # This line is a drift marker
+        line = contentsSplit[lineNo]
+
+        currentDrift = drifts[lineNo]
+
+        # Extract timestamp from line for reporting
+        matchObj = printk_timestamp_converter.PRINTK_WITH_TIME_PATTERN.match(line)
+        if matchObj:
+            # Show what the kernel reported, what reality was, and the delta.
+            printkSeconds = matchObj.groupdict()['printk_seconds']
+            printkSecondsI = float(printkSeconds)
+            timePortion = getTimePortion(printkSeconds, currentDrift)
+
+            sys.stdout.write ( " %s - drift noted to be %d seconds. ( Clock=%d  Mark=%d )\n" %( timePortion, currentDrift, printkSecondsI, printkSecondsI + currentDrift ) )
+
+
+    # vim: sw=4 ts=4 expandtab
