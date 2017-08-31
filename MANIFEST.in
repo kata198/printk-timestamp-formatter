@@ -5,5 +5,7 @@ include README.rst
 include LICENSE
 include setup.py
 include dmesg_format_dates
+include dmesg_get_drifts
 include printk_time_to_date
+include printk_mark_drift
 recursive-include doc *.html
