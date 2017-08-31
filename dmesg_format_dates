@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2015-2016 Tim Savannah under LGPLv3. See LICENSE for more information.
+# Copyright (c) 2015, 2016, 2017 Tim Savannah under LGPLv3. See LICENSE for more information.
 # This application prints the kernel log (dmesg), converting the timestamps to local time or utc,
 #  adjusting for drift between the time systems.
+import errno
 import sys
-
 import subprocess
+import traceback
+
 import printk_timestamp_converter
 
 defaultEncoding = sys.getdefaultencoding()
@@ -40,6 +42,9 @@ def printUsage():
 
            --drift=N               Assume a fixed drift of N, instead of using (or adding) the drift markers.
 
+           --no-warnings           Disable warnings being repeated on stdout at end of output (stdout).
+                                     The warnings will still be output to stderr before any output on stdout
+
        Output Formats (pick one):
        
            -l or --local           Output time on LOCAL format (DEFAULT).
@@ -62,12 +67,45 @@ def err_tooManyModes():
     sys.exit(1)
 
 
+
+def readAllData(stream):
+    
+    if sys.version_info.major == 2:
+        POSSIBLE_EOFS = ('', u'')
+    else:
+        POSSIBLE_EOFS = ('', b'')
+    
+    isStreamClosed = lambda theStream : getattr(theStream, 'closed', False)
+
+    if isStreamClosed(stream):
+        return '' # Note, does not check the stream codec, but doesn't matter for this app
+
+    retLst = []
+
+    while True:
+        
+        nextContents = stream.read()
+
+        if isStreamClosed(stream) or nextContents in POSSIBLE_EOFS:
+            break
+        
+        retLst.append(nextContents)
+
+    if not retLst:
+        return ''
+
+    # Ensure we join with the correct type
+    return type(retLst[0])().join(retLst)
+
+
 if __name__ == '__main__':
     mode = MODE_LOCAL
 
     args = sys.argv[1:]
     currentDrift = None
     drifts = {}
+
+    shouldRepeatWarnings = True
 
     for arg in args:
         if arg in ('-u', '--utc'):
@@ -91,27 +129,78 @@ if __name__ == '__main__':
             except ValueError:
                 sys.stderr.write('--drift takes an integer argument.\n')
                 sys.exit(1)
+        elif arg == '--no-warnings':
+            shouldRepeatWarnings = False
+
         else:
             sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
             printUsage()
             sys.exit(1)
 
 
+    # Yes these two can be combined, but "explicit better than implicit"
+    notLegitException = None
+
+    funcArgs = []
+
     try:
+
         if not sys.stdin.isatty():
-            contents = sys.stdin.read()
-            if currentDrift is None:
-                drifts = printk_timestamp_converter.printk_calculateDrifts(contents)
+            # If we are reading from a terminal, collect the data
+
+            contents = readAllData(sys.stdin)
+
+            funcArgs.append(contents)
+            #if currentDrift is None:
+            #    drifts = printk_timestamp_converter.printk_calculateDrifts(contents
         else:
             pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
-            contents = tostr(pipe.stdout.read())
+            contents = tostr(readAllData(pipe.stdout))
             pipe.wait()
-            if currentDrift is None:
-                drifts = printk_timestamp_converter.printk_calculateDrifts()
-    except printk_timestamp_converter.NotRecentEnoughDriftDelta as e:
-        sys.stderr.write(str(e) + '\n')
-        sys.exit(1)
+    except Exception as e:
+        excInfo = sys.exc_info()
+        sys.stderr.write('Error collecting dmesg data.\n%s:  %s\n\n' %( type(e).__name__, str(e)))
+        traceback.print_exception(*excInfo)
+        sys.exit( errno.EIO )
 
+    warnings = []
+
+    def addWarning(warn):
+        warnings.append(warn)
+        sys.stderr.write(warn)
+
+    if currentDrift is None:
+        # No drift provided, try to calculate it (and possibly mark if root and not pre-provided via stdin)
+        try:
+            drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs)
+
+        except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
+            # Failed to calculate drift because not root and no recent marker found
+            notLegitException = nre
+
+            # Try again to detect if ANY marker is present
+            try:
+                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, maxDriftRedetectTime=0)
+
+                addWarning('## WARNING: A "recent" drift was not detected (within %d seconds), but an older marker was found.\n')
+                addWarning('## WARNING:  It is recommended that you re-run this command as root (if not parsing from a file),\n')
+                addWarning('## WARNING:   or running `printk_mark_drift` command. See README/help for more info.\n\n')
+            except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre2:
+                # Failed again. No marker present at all.
+                #  SINCE VERSION 2.3 - ASSUME 0 AND WARN USER.
+
+                currentDrift = drifts['earliest'] = drifts['latest'] = 0
+
+                # Add the previous error message here, but convert to multiline and prefix with ## WARNING: 
+                addWarning('## WARNING: %s\n\n' %(str(nre).replace('.', '.\n## WARNING: '), ))
+                addWarning('## WARNING: No drift marker was detected in the dmesg log. This means the times will NOT\n')
+                addWarning('## WARNING:   be accurate, as the drift with the system clock is not measured.\n')
+                addWarning('## WARNING: Please see documentation for more info, rerun this command as root,\n')
+                addWarning('## WARNING:   or run `printk_mark_drift` command often. See README/help for more info.\n\n')
+
+            sys.stderr.flush()
+
+            
     currentDrift = drifts['earliest']
 
     currentUptime = printk_timestamp_converter.getSystemUptime()
@@ -147,5 +236,10 @@ if __name__ == '__main__':
             except:
                 break
         lineNo += 1
+
+    # Copy warnings to stdout
+    if shouldRepeatWarnings and warnings:
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(warnings))
 
     # vim: sw=4 ts=4 expandtab

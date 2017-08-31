@@ -92,9 +92,9 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
         pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
         dmesgContents = tostr(pipe.stdout.read())
         pipe.wait()
-        providedDmesgContents = False
+        wasPassedContents = False
     else:
-        providedDmesgContents = True
+        wasPassedContents = True
     
     dmesgContentsSplit = dmesgContents.split('\n')
     dmesgContentsSplit.reverse()
@@ -124,7 +124,7 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
     if 'latest' in drifts:
         return drifts
 
-    if providedDmesgContents is True:
+    if wasPassedContents is True:
         raise NotRecentEnoughDriftDelta('Cannot calculate printk drift: a close enough sample is not present, and an input was provided. Please run this on the host that provided the file to calculate the current drift. NOTE: There is an issue to where this is only accurate with recent dates due to varying drift.')
         
 
