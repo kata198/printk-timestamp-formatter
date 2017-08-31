@@ -69,6 +69,13 @@ def err_tooManyModes():
 
 
 def readAllData(stream):
+    '''
+        readAllData - Read all the data on a stream, waiting for eof to support incomplete streams
+
+        @param stream - A stream
+
+        @return - Data read off stream
+    '''
     
     if sys.version_info.major == 2:
         POSSIBLE_EOFS = ('', u'')
@@ -107,6 +114,7 @@ if __name__ == '__main__':
 
     shouldRepeatWarnings = True
 
+    # PARE ARGS
     for arg in args:
         if arg in ('-u', '--utc'):
             mode = MODE_UTC
@@ -139,7 +147,6 @@ if __name__ == '__main__':
 
 
     # Yes these two can be combined, but "explicit better than implicit"
-    notLegitException = None
 
     funcArgs = []
 
@@ -151,8 +158,6 @@ if __name__ == '__main__':
             contents = readAllData(sys.stdin)
 
             funcArgs.append(contents)
-            #if currentDrift is None:
-            #    drifts = printk_timestamp_converter.printk_calculateDrifts(contents
         else:
             pipe = subprocess.Popen('dmesg', shell=True, stdout=subprocess.PIPE)
             contents = tostr(readAllData(pipe.stdout))
@@ -176,7 +181,6 @@ if __name__ == '__main__':
 
         except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
             # Failed to calculate drift because not root and no recent marker found
-            notLegitException = nre
 
             # Try again to detect if ANY marker is present
             try:
@@ -201,28 +205,40 @@ if __name__ == '__main__':
             sys.stderr.flush()
 
             
-    currentDrift = drifts['earliest']
 
     currentUptime = printk_timestamp_converter.getSystemUptime()
 
-    lineNo = 0
-    contentsSplit = contents.split('\n')
+    # Convert to tuple here for array index performance
+    contentsSplit = tuple(contents.split('\n'))
 
+    # Get the selected timestamp output function
     if mode == MODE_EPOCH:
-        getTimePortion = lambda printkSeconds, currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(printkSeconds, currentDrift, currentUptime))
+        getTimePortion = lambda _printkSeconds, _currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime))
     elif mode == MODE_LOCAL:
-        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+        getTimePortion = lambda _printkSeconds, _currentDrift : printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime).ctime()
     else:
-        getTimePortion = lambda printkSeconds, currentDrift : printk_timestamp_converter.printk_convertTimestampToUTCDatetime(printkSeconds, currentDrift, currentUptime).ctime()
+        getTimePortion = lambda _printkSeconds, _currentDrift : printk_timestamp_converter.printk_convertTimestampToUTCDatetime(_printkSeconds, _currentDrift, currentUptime).ctime()
 
     if not contentsSplit[-1]:
         contentsSplit = contentsSplit[:-1]
-    for line in contentsSplit:
+
+
+    currentDrift = drifts['earliest']
+    contentsSplitLen = len(contentsSplit)
+
+    for lineNo in range(contentsSplitLen):
+
+        line = contentsSplit[lineNo]
+
+        # Check if we have reached the next
         if lineNo in drifts:
             currentDrift = drifts[lineNo]
 
+        # Try to extract the timnestamp from this line
         matchObj = printk_timestamp_converter.PRINTK_WITH_TIME_PATTERN.match(line)
         if matchObj:
+            # We matched a kernel clock at beginning of line, convert it to desired timestamp format
+            #   taking into account drift
             printkSeconds = matchObj.groupdict()['printk_seconds']
             timePortion = getTimePortion(printkSeconds, currentDrift)
             
@@ -235,7 +251,6 @@ if __name__ == '__main__':
                 sys.stdout.write(line + "\n")
             except:
                 break
-        lineNo += 1
 
     # Copy warnings to stdout
     if shouldRepeatWarnings and warnings:
