@@ -1,3 +1,36 @@
+* 2.3.0 - Aug 31 2017
+
+* output warnings prefixed with ## WARNING: first on stderr then on
+stdout at end (the latter can be disabled via --no-warnings flag)
+
+* Better implementation of reading to ensure if stream pauses, NFS
+delays, etc will always provide a complete read (very very very
+unlikely small chance before that a partial read could happen)
+
+* BACKWARDS-INCOMPATIBLE CHANGE:
+
+Previously, if there was not a "recent enough" drift (defined by a
+static threshold of 12000 seconds, or 3 hours and 20 minutes) we
+would abort with error, unless we were root and not reading from a
+file, in which case we would mark the end (even though the beginning
+could still be inaccurate with long uptimes).
+
+Now, we perform the following:
+
+   ** If no recent drift, scan for ANY drift. If present, use the
+   availbale drifts and warn the user (new warning)
+
+   ** If there are no drifts available at all, assume a drift of 0
+   and warn the user. This would be equivilant to the output from
+   "dmesg -T" and thus not very useful, but means that
+   "dmesg_format_dates" can be used unconditionally on all files
+   whether or not they contain a drift.
+
+Thus, we work without any drifts or without recent drifts now, and
+just warn about the lack of accuracy doing so.
+
+* Some minor cleanups
+
 * 2.2.1 - Mar 3 2016
 - Fix usage of dmesg_format_dates with head (no longer prints warning)
 - Simplify main loop of dmesg_format_dates to omit a comparison
@@ -19,3 +52,4 @@ printk_convert_time
 
 * 2.0.0 (prerelease)
 - Partial Prerelease
+
