@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2016 Tim Savannah under LGPLv3.
+# Copyright (c) 2015, 2016, 2017 Tim Savannah under LGPLv3.
 # You should have received a copy of this with this distribution as LICENSE
 #
 # This provides a library for dealing with printk drift between actual uptime.
@@ -242,4 +242,4 @@ def printk_markCurrentDrift():
 
     return procUptime
 
-# vim: sw=4 ts=4 expandtab
+# vim: set sw=4 ts=4 st=4 expandtab

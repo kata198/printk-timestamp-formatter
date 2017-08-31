@@ -210,4 +210,4 @@ if __name__ == '__main__':
             sys.stdout.write ( " %s - drift noted to be %d seconds. ( Clock=%d  Mark=%d )\n" %( timePortion, currentDrift, printkSecondsI, printkSecondsI + currentDrift ) )
 
 
-    # vim: sw=4 ts=4 expandtab
+# vim: set sw=4 ts=4 st expandtab
