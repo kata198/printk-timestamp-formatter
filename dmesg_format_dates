@@ -120,7 +120,7 @@ if __name__ == '__main__':
             pickedAMode = True
         elif arg in ('-e', '--epoch'):
             mode = MODE_EPOCH
-        elif arg in ('--help', '0h', '-?'):
+        elif arg in ('--help', '-h', '-?'):
             printUsage()
             sys.exit(0)
         elif arg.startswith('--drift='):
