@@ -59,14 +59,18 @@ else:
         return x.decode(defaultEncoding)
 
 # Drift is measured as printk_seconds - uptime_seconds
-def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetectTime=PRINTK_DRIFT_REDETECT_TIME):
+def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetectTime=PRINTK_DRIFT_REDETECT_TIME, markIfRequired=True):
     '''
         printk_calculateDrifts - Calculates the drifts for a dmesg log
 
-            @param dmesgContents <str/None> - Contents of dmesg, or None to fetch new
-            @param onlyLatest  <bool>     - Only fetch the most recent.
-            @param maxDriftRedetectTime <int> - Number of seconds that represents max tolerance between printk detections. If set to 0, any present
+            @param dmesgContents <str/None> Default None - Contents of dmesg, or None to fetch new
+
+            @param onlyLatest  <bool> Default False    - Only fetch the most recent.
+
+            @param maxDriftRedetectTime <int> Default PRINTK_DRIFT_REDETECT_TIME - Number of seconds that represents max tolerance between printk detections. If set to 0, any present
                                                 delta is okay.
+
+            @param markIfRequired <bool> default True - if a marker is not found within #maxDriftRedetectTime and this is set to True, a mark will be attempted (requires root and dmesgContents to be None). Otherwise, in the circumstance that there is not a recent enough marker, a NotRecentEnoughDriftDelta will be raised (more info below)
 
             This will add an entry if one has not been inserted in the last PRINTK_DRIFT_REDIRECT_TIME seconds.
             The entry compares the printk "time" with current uptime, to detect a drift.
@@ -129,10 +133,13 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
         
 
     # Otherwise, try to get a new one. usually, must be root.
-    try:
-        printk_markCurrentDrift()
-    except Exception as e:
-        raise NotRecentEnoughDriftDelta("Cannot calculate printk drift: a close enough sample is not present. Please retry as root, or another user that can write to /dev/kmsg, after which you can resume unprivileged usage.")
+    if markIfRequired:
+        try:
+            printk_markCurrentDrift()
+        except Exception as e:
+            raise NotRecentEnoughDriftDelta("Cannot calculate printk drift: a close enough sample is not present. Please retry as root, or another user that can write to /dev/kmsg, after which you can resume unprivileged usage.")
+    else:
+        raise NotRecentEnoughDriftDelta('Cannot calculate printk drift: a close enough sample is not present and marking has been disabled. Either increase maxDriftRedetectTime (or set to 0), or call with markIfRequired=True when root, or otherwise provide marking.')
     
     # Read contents again, reverse and find the line we just added. Calculate the delta and return
     time.sleep(.001)
