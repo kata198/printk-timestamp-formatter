@@ -31,6 +31,20 @@ just warn about the lack of accuracy doing so.
 
 * Some minor cleanups
 
+* Add "--no-mark" flag (and associated updates to library) which will prevent
+any attempts to add a mark to the log when collecting drift times if a
+recent-enough (12000 seconds) mark is not present.
+
+* Add a "dmesg_get_drifts" command, which will print the time of each marked
+drift, and how much the clock has drifted at that point.
+
+  This can be used to evaluate how much your system is drifting to accurately
+  tune how often you should be marking. It could also be parsed by an external
+  application that can't use the provided python library (like written in a
+  different language)
+
+* Fix typo preventing -h from printing help in dmesg_format_dates
+
 * 2.2.1 - Mar 3 2016
 - Fix usage of dmesg_format_dates with head (no longer prints warning)
 - Simplify main loop of dmesg_format_dates to omit a comparison
