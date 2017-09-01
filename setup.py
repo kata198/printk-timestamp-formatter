@@ -25,7 +25,7 @@ if __name__ == '__main__':
             license='LGPLv2',
             packages=['printk_timestamp_converter'],
             keywords=['printk', 'timestamp', 'date', 'convert', 'drift', 'converter', 'dmesg', 'kmsg'],
-            scripts=['dmesg_format_dates', 'printk_time_convert', 'printk_mark_drift'],
+            scripts=['dmesg_format_dates', 'printk_time_convert', 'printk_mark_drift', 'dmesg_get_drifts'],
             classifiers=['Development Status :: 5 - Production/Stable',
                 'Operating System :: POSIX :: Linux',
                 'Topic :: System :: Operating System Kernels :: Linux',
