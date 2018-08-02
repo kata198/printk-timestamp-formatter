@@ -1,3 +1,7 @@
+* 4.0.0 - Aug 02 2018
+
+- Change from using integers for calculating drift time to using floats with 2 significant digits past the decimal point (which is the same accuracy as /proc/uptime reports). This brings the maximum accuracy to around +- 10ms from +- 1s. We still only report time to the second-level, but this will better ensure that second-level reporting has more accuracy.
+
 * 3.0.0 - Aug 31 2017
 
 * output warnings prefixed with ## WARNING: first on stderr then on
