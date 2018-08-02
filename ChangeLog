@@ -2,6 +2,15 @@
 
 - Change from using integers for calculating drift time to using floats with 2 significant digits past the decimal point (which is the same accuracy as /proc/uptime reports). This brings the maximum accuracy to around +- 10ms from +- 1s. We still only report time to the second-level, but this will better ensure that second-level reporting has more accuracy.
 
+- Python2 - Fix syntax error on python2 in dmesg_format_dates - providing a keyword-expansion ( \*\*kwargs ) followed by a keyword-arg ( a=b ) is only legal in python3. So remove the pass-by-keyword and set it as a key in the dict being used for the keyword expansion
+
+- dmesg_format_dates - Add a '-s' or '--subsec' flag to also print subseconds (out of 100, so for example date output could look like 'Thu Aug  2 16:17:31.58 2018' with the .58 after the seconds, indicating 58/100ths of a second past 31 seconds.
+
+Also add a note to the help message that the timing is at best (excluding clock drift) accurate to within +-10ms, or +- .01 seconds.
+
+- Some minor variable renaming/cleanup
+
+
 * 3.0.0 - Aug 31 2017
 
 * output warnings prefixed with ## WARNING: first on stderr then on
