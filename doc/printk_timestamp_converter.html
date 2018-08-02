@@ -6,8 +6,8 @@
 <table width="100%" cellspacing="0" cellpadding="2" border="0" summary="heading" >
 <tr bgcolor="#7799ee" >
 <td valign="bottom" >&nbsp;<br />
-<font color="#ffffff" face="helvetica, arial" >&nbsp;<br /><big ><big ><strong >printk_timestamp_converter</strong></big></big> (version 3.0.0)</font></td><td align="right" valign="bottom" ><font color="#ffffff" face="helvetica, arial" ><a href="printk_timestamp_converter.html" >index</a></font></td></tr></table>
-    <p ><tt >#&nbsp;Copyright&nbsp;(c)&nbsp;2015,&nbsp;2016,&nbsp;2017&nbsp;Tim&nbsp;Savannah&nbsp;under&nbsp;LGPLv3.<br />
+<font color="#ffffff" face="helvetica, arial" >&nbsp;<br /><big ><big ><strong >printk_timestamp_converter</strong></big></big> (version 4.0.0)</font></td><td align="right" valign="bottom" ><font color="#ffffff" face="helvetica, arial" ><a href="printk_timestamp_converter.html" >index</a></font></td></tr></table>
+    <p ><tt >#&nbsp;Copyright&nbsp;(c)&nbsp;2015,&nbsp;2016,&nbsp;2017,&nbsp;2018&nbsp;Tim&nbsp;Savannah&nbsp;under&nbsp;LGPLv3.<br />
 #&nbsp;You&nbsp;should&nbsp;have&nbsp;received&nbsp;a&nbsp;copy&nbsp;of&nbsp;this&nbsp;with&nbsp;this&nbsp;distribution&nbsp;as&nbsp;LICENSE<br />
 #<br />
 #&nbsp;This&nbsp;provides&nbsp;a&nbsp;library&nbsp;for&nbsp;dealing&nbsp;with&nbsp;printk&nbsp;drift&nbsp;between&nbsp;actual&nbsp;uptime.<br />
@@ -106,14 +106,14 @@ Data descriptors inherited from <a href="builtins.html#BaseException" >builtins.
 <tr ><td bgcolor="#eeaa77" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
 <td width="100%" ><dl ><dt ><a name="-getSystemUptime" ><strong >getSystemUptime</strong></a>()</dt><dd ><tt >getSystemUptime&nbsp;-&nbsp;Gets&nbsp;system&nbsp;uptime&nbsp;in&nbsp;seconds<br />
 &nbsp;<br />
-@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;Seconds&nbsp;of&nbsp;uptime</tt></dd></dl>
+@return&nbsp;&lt;float&gt;&nbsp;-&nbsp;Seconds&nbsp;of&nbsp;uptime</tt></dd></dl>
  <dl ><dt ><a name="-printk_calculateCurrentDrift" ><strong >printk_calculateCurrentDrift</strong></a>(dmesgContents=None, maxDriftRedetectTime=12000)</dt><dd ><tt >printk_calculateCurrentDrift&nbsp;-&nbsp;Convienance&nbsp;function&nbsp;for&nbsp;printk_calculateDrifts&nbsp;which&nbsp;just&nbsp;returns&nbsp;the&nbsp;latest&nbsp;drift.<br />
 &nbsp;<br />
 This&nbsp;function&nbsp;will&nbsp;try&nbsp;to&nbsp;add&nbsp;a&nbsp;new&nbsp;entry&nbsp;if&nbsp;the&nbsp;last&nbsp;delta&nbsp;is&nbsp;outside&nbsp;the&nbsp;given&nbsp;threshold<br />
 &nbsp;<br />
 @see&nbsp;printk_calculateDrifts<br />
 &nbsp;<br />
-@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;Latest&nbsp;delta</tt></dd></dl>
+@return&nbsp;&lt;float&gt;&nbsp;-&nbsp;Latest&nbsp;delta</tt></dd></dl>
  <dl ><dt ><a name="-printk_calculateDrifts" ><strong >printk_calculateDrifts</strong></a>(dmesgContents=None, onlyLatest=False, maxDriftRedetectTime=12000, markIfRequired=True)</dt><dd ><tt >printk_calculateDrifts&nbsp;-&nbsp;Calculates&nbsp;the&nbsp;drifts&nbsp;for&nbsp;a&nbsp;dmesg&nbsp;log<br />
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;@param&nbsp;dmesgContents&nbsp;&lt;str/None&gt;&nbsp;Default&nbsp;None&nbsp;-&nbsp;Contents&nbsp;of&nbsp;dmesg,&nbsp;or&nbsp;None&nbsp;to&nbsp;fetch&nbsp;new<br />
@@ -148,9 +148,9 @@ This&nbsp;function&nbsp;will&nbsp;try&nbsp;to&nbsp;add&nbsp;a&nbsp;new&nbsp;entr
 &nbsp;<br />
 @param&nbsp;timestamp&nbsp;&lt;str/float&gt;&nbsp;-&nbsp;String/Float&nbsp;of&nbsp;the&nbsp;timestamp&nbsp;(e.x.&nbsp;[1234.14])<br />
 @param&nbsp;drift&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;float&gt;&nbsp;-&nbsp;Given&nbsp;drift,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate&nbsp;a&nbsp;drift.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calculate&nbsp;drift&nbsp;first&nbsp;with&nbsp;printk_calculateDrift(s)<br />
-@param&nbsp;uptime&nbsp;&nbsp;&nbsp;&nbsp;&lt;int&gt;&nbsp;-&nbsp;Current&nbsp;uptime&nbsp;for&nbsp;calcluation,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calcluate&nbsp;first&nbsp;with&nbsp;getSystemUptime<br />
+@param&nbsp;uptime&nbsp;&nbsp;&nbsp;&nbsp;&lt;float&gt;&nbsp;-&nbsp;Current&nbsp;uptime&nbsp;for&nbsp;calcluation,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calcluate&nbsp;first&nbsp;with&nbsp;getSystemUptime<br />
 &nbsp;<br />
-@return&nbsp;&lt;int&gt;&nbsp;-&nbsp;seconds&nbsp;since&nbsp;epoch.&nbsp;Can&nbsp;be&nbsp;used&nbsp;for&nbsp;a&nbsp;datetime.fromtimestamp</tt></dd></dl>
+@return&nbsp;&lt;float&gt;&nbsp;-&nbsp;seconds&nbsp;since&nbsp;epoch.&nbsp;Can&nbsp;be&nbsp;used&nbsp;for&nbsp;a&nbsp;datetime.fromtimestamp</tt></dd></dl>
  <dl ><dt ><a name="-printk_convertTimestampToUTCDatetime" ><strong >printk_convertTimestampToUTCDatetime</strong></a>(timestamp, drift=None, uptime=None)</dt><dd ><tt >printk_convertTimestampToUTCDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;utc&nbsp;datetime&nbsp;object<br />
 &nbsp;<br />
 @see&nbsp;printk_convertTimestampToEpoch<br />
@@ -167,5 +167,5 @@ This&nbsp;function&nbsp;will&nbsp;try&nbsp;to&nbsp;add&nbsp;a&nbsp;new&nbsp;entr
     
 <tr ><td bgcolor="#55aa55" ><tt >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td >&nbsp;</td>
 <td width="100%" ><strong >__all__</strong> = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift', 'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')<br />
-<strong >__version_tuple__</strong> = (3, 0, 0)</td></tr></table>
+<strong >__version_tuple__</strong> = (4, 0, 0)</td></tr></table>
 </p></p></p></p></body></html>
