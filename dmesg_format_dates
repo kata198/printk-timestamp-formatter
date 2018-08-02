@@ -3,6 +3,7 @@
 # Copyright (c) 2015, 2016, 2017 Tim Savannah under LGPLv3. See LICENSE for more information.
 # This application prints the kernel log (dmesg), converting the timestamps to local time or utc,
 #  adjusting for drift between the time systems.
+import copy
 import errno
 import sys
 import subprocess
@@ -196,8 +197,10 @@ if __name__ == '__main__':
             # Failed to calculate drift because not root and no recent marker found
 
             # Try again to detect if ANY marker is present
+            tmpFuncKwargs = copy.deepcopy(funcKwargs)
+            tmpFuncKwargs['maxDriftRedetectTime'] = 0
             try:
-                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwargs, maxDriftRedetectTime=0)
+                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **tmpFuncKwargs)
 
                 addWarning('## WARNING: A "recent" drift was not detected (within %d seconds), but an older marker was found.\n')
                 addWarning('## WARNING:  It is recommended that you re-run this command as root (if not parsing from a file),\n')
