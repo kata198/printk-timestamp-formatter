@@ -14,9 +14,14 @@ import time
 import subprocess
 
 PRINTK_DRIFT_MSG = '=== Detecting printk drift:'
-PRINTK_DRIFT_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+)[\.][\d]+(\]) (' + PRINTK_DRIFT_MSG + ') (?P<uptime_seconds>[\d]+)' )
 
-PRINTK_WITH_TIME_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+)[\.][\d]+(\])')
+# In below patterns, capture only the first 2 digits of the printk clock (to match significant digits of uptime clock)
+
+# PRINTK_DRIFT_PATTERN - Pattern to match a kmsg line containing a printk-clock timestamp and our drift marker (for calculating the drift of the printk clock)
+PRINTK_DRIFT_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+[\.][\d][\d])[\d]*(\]) (' + PRINTK_DRIFT_MSG + ') (?P<uptime_seconds>[\d]+([\.][\d]+){0,1})' )
+
+# PRINTK_WITH_TIME_PATTERN - Pattern to extract the printk clock time from a kmsg line
+PRINTK_WITH_TIME_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+[\.][\d][\d])[\d]*(\])')
 
 PRINTK_DRIFT_REDETECT_TIME = 12000 # seconds
 
@@ -36,10 +41,10 @@ def getSystemUptime():
     '''
         getSystemUptime - Gets system uptime in seconds
 
-        @return <int> - Seconds of uptime
+        @return <float> - Seconds of uptime
     '''
     with open('/proc/uptime', 'r') as procUptime:
-        uptime = int(procUptime.read().split('.')[0])
+        uptime = float(procUptime.read().split(' ')[0])
     return uptime
     
 
@@ -110,8 +115,9 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
             matchObj = PRINTK_DRIFT_PATTERN.match(line)
             if matchObj is not None:
                 groupDict = matchObj.groupdict()
-                msgUptimeSeconds = int(groupDict['uptime_seconds'])
-                drift = int(groupDict['printk_seconds']) - msgUptimeSeconds 
+                #print ( "Matched: %s" %( repr(groupDict), ))
+                msgUptimeSeconds = float(groupDict['uptime_seconds'])
+                drift = float(groupDict['printk_seconds']) - msgUptimeSeconds 
                 if 'latest' not in drifts:
                     if not maxDriftRedetectTime:
                         drifts['earliest'] = drifts['latest'] = drifts[lineNo] = drift
@@ -156,8 +162,9 @@ def printk_calculateDrifts(dmesgContents=None, onlyLatest=False, maxDriftRedetec
             matchObj = PRINTK_DRIFT_PATTERN.match(line)
             if matchObj is not None:
                 groupDict = matchObj.groupdict()
-                msgUptimeSeconds = int(groupDict['uptime_seconds'])
-                drift = int(groupDict['printk_seconds']) - msgUptimeSeconds 
+                #print ( "Matched: %s" %( repr(groupDict), ))
+                msgUptimeSeconds = float(groupDict['uptime_seconds'])
+                drift = float(groupDict['printk_seconds']) - msgUptimeSeconds 
                 drifts['earliest'] = drifts['latest'] = drifts[lineNo] = drift
                 return drifts
         lineNo -= 1
@@ -172,7 +179,7 @@ def printk_calculateCurrentDrift(dmesgContents=None, maxDriftRedetectTime=PRINTK
 
         @see printk_calculateDrifts
 
-        @return <int> - Latest delta
+        @return <float> - Latest delta
     '''
     return printk_calculateDrifts(dmesgContents, onlyLatest=True, maxDriftRedetectTime=maxDriftRedetectTime)['latest']
 
@@ -182,12 +189,13 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
 
         @param timestamp <str/float> - String/Float of the timestamp (e.x. [1234.14])
         @param drift     <float> - Given drift, or None to calculate a drift. If calling often, calculate drift first with printk_calculateDrift(s)
-        @param uptime    <int> - Current uptime for calcluation, or None to calculate. If calling often, calcluate first with getSystemUptime
+        @param uptime    <float> - Current uptime for calcluation, or None to calculate. If calling often, calcluate first with getSystemUptime
 
-        @return <int> - seconds since epoch. Can be used for a datetime.fromtimestamp
+        @return <float> - seconds since epoch. Can be used for a datetime.fromtimestamp
     '''
-    timestamp = str(float(timestamp))
-    timestamp = int(timestamp.split('.')[0])
+    #timestamp = str(float(timestamp))
+    #timestamp = int(timestamp.split('.')[0])
+    timestamp = float(timestamp)
 
     if drift is None:
         drift = printk_calculateCurrentDrift()
@@ -196,9 +204,9 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
     if uptime is None:
         uptime = getSystemUptime()
     else:
-        uptime = int(uptime)
+        uptime = float(uptime)
 
-    now = int(time.time())
+    now = float(time.time())
 
     msgTime = now - (uptime - secondsSinceUptime)
 
@@ -234,9 +242,9 @@ def printk_markCurrentDrift():
 
         @return - Current uptime in seconds
     '''
-    procUptime = getSystemUptime()
     doRaise = False
     kmsgBuff = open('/dev/kmsg', 'w')
+    procUptime = getSystemUptime()
     kmsgBuff.write(PRINTK_DRIFT_MSG + ' ' + str(procUptime) + "\n")
     kmsgBuff.close()
 
