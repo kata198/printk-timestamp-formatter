@@ -49,10 +49,17 @@ def printUsage():
            --no-mark               Do not attempt to place a marker, even if a recent sample is not found.
 
        Output Formats (pick one):
-       
+
            -l or --local           Output time on LOCAL format (DEFAULT).
            -u or --utc             Output time in UTC format.
            -e or --epoch           Output time in Unix Epoch format (seconds since Jan 1 1970 00:00:00)
+
+       Output Format Option:
+
+           -s or --subsec          Output subseconds
+
+
+    Note that the max accuracy (if clock hasn't drifted at all since last drift mark) is +- 10ms or .01s
 
 
     If your kernel log does not contain timestamps, run: echo "Y" > /sys/module/printk/parameters/time
@@ -62,6 +69,8 @@ def printUsage():
 MODE_LOCAL = 0
 MODE_UTC = 1
 MODE_EPOCH = 2
+
+includeSubSeconds = False
 
 pickedAMode = False
 
@@ -147,6 +156,10 @@ if __name__ == '__main__':
         elif arg == '--no-mark':
             shouldMarkIfRequired = False
 
+        # --subseconds isn't in the usage, but support it anyway.
+        elif arg in ('-s', '--subsec' '--subseconds'):
+            includeSubSeconds = True
+
         else:
             sys.stderr.write('Unknown argument: %s\n\n' %(arg,))
             printUsage()
@@ -156,12 +169,12 @@ if __name__ == '__main__':
     # Yes these two can be combined, but "explicit better than implicit"
 
     funcArgs = []
-    funcKwargs = {}
+    funcKwArgs = {}
 
     if shouldMarkIfRequired:
-        funcKwargs['markIfRequired'] = True
+        funcKwArgs['markIfRequired'] = True
     else:
-        funcKwargs['markIfRequired'] = False
+        funcKwArgs['markIfRequired'] = False
 
 
     try:
@@ -191,16 +204,16 @@ if __name__ == '__main__':
     if currentDrift is None:
         # No drift provided, try to calculate it (and possibly mark if root and not pre-provided via stdin)
         try:
-            drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwargs)
+            drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **funcKwArgs)
 
         except printk_timestamp_converter.NotRecentEnoughDriftDelta as nre:
             # Failed to calculate drift because not root and no recent marker found
 
             # Try again to detect if ANY marker is present
-            tmpFuncKwargs = copy.deepcopy(funcKwargs)
-            tmpFuncKwargs['maxDriftRedetectTime'] = 0
+            tmpFuncKwArgs = copy.deepcopy(funcKwArgs)
+            tmpFuncKwArgs['maxDriftRedetectTime'] = 0
             try:
-                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **tmpFuncKwargs)
+                drifts = printk_timestamp_converter.printk_calculateDrifts(*funcArgs, **tmpFuncKwArgs)
 
                 addWarning('## WARNING: A "recent" drift was not detected (within %d seconds), but an older marker was found.\n')
                 addWarning('## WARNING:  It is recommended that you re-run this command as root (if not parsing from a file),\n')
@@ -227,13 +240,22 @@ if __name__ == '__main__':
     # Convert to tuple here for array index performance
     contentsSplit = tuple(contents.split('\n'))
 
+    CTIME_FORMAT_NOYEAR = '%a %b %e %H:%M:%S'
+    if not includeSubSeconds:
+        # Ctime
+        CTIME_FORMAT_YEAR = CTIME_FORMAT_NOYEAR + ' %Y'
+        timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_YEAR)
+    else:
+        timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_NOYEAR) + ('%.2f %s' %(float(datetimeObj.microsecond) / 100.0 - int(datetimeObj.microsecond / 100.0), str(datetimeObj.year) ))[1:]
+
+
     # Get the selected timestamp output function
     if mode == MODE_EPOCH:
         getTimePortion = lambda _printkSeconds, _currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime))
     elif mode == MODE_LOCAL:
-        getTimePortion = lambda _printkSeconds, _currentDrift : printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime).ctime()
+        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime) )
     else:
-        getTimePortion = lambda _printkSeconds, _currentDrift : printk_timestamp_converter.printk_convertTimestampToUTCDatetime(_printkSeconds, _currentDrift, currentUptime).ctime()
+        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToUTCDatetime(_printkSeconds, _currentDrift, currentUptime) )
 
     if not contentsSplit[-1]:
         contentsSplit = contentsSplit[:-1]
