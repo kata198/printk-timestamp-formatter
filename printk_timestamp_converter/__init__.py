@@ -227,7 +227,8 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None, fromTimes
 
     msgTime = now - (uptime - secondsSinceUptime)
 
-    return msgTime
+    # We only have 2 significant digits because that's what uptime provides
+    return round(msgTime, 2)
 
 def printk_convertTimestampToDatetime(timestamp, drift=None, uptime=None, fromTimestamp=None):
     '''
