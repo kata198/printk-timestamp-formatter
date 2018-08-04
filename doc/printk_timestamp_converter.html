@@ -139,19 +139,33 @@ This&nbsp;function&nbsp;will&nbsp;try&nbsp;to&nbsp;add&nbsp;a&nbsp;new&nbsp;entr
 &nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;maxDriftRedetectTime&nbsp;is&nbsp;0,&nbsp;and&nbsp;there&nbsp;is&nbsp;no&nbsp;given&nbsp;delta,&nbsp;and&nbsp;one&nbsp;cannot&nbsp;be&nbsp;created,&nbsp;a&nbsp;<a href="#NotRecentEnoughDriftDelta" >NotRecentEnoughDriftDelta</a>&nbsp;will&nbsp;be&nbsp;raised.<br />
 &nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;starts&nbsp;with&nbsp;a&nbsp;drift&nbsp;of&nbsp;0&nbsp;at&nbsp;zero.&nbsp;This&nbsp;could&nbsp;vary,&nbsp;depending&nbsp;on&nbsp;how&nbsp;far&nbsp;out&nbsp;the&nbsp;first&nbsp;delta&nbsp;is&nbsp;placed,&nbsp;and&nbsp;how&nbsp;off&nbsp;the&nbsp;clock&nbsp;was&nbsp;on&nbsp;boot&nbsp;from&nbsp;being&nbsp;corrected&nbsp;later.&nbsp;You&nbsp;may&nbsp;want&nbsp;to&nbsp;ignore&nbsp;this,&nbsp;maybe&nbsp;not.&nbsp;The&nbsp;most&nbsp;accurate&nbsp;option&nbsp;is&nbsp;to&nbsp;add&nbsp;a&nbsp;printk&nbsp;drift&nbsp;marker&nbsp;after&nbsp;ntpdate&nbsp;service&nbsp;on&nbsp;the&nbsp;boot</tt></dd></dl>
- <dl ><dt ><a name="-printk_convertTimestampToDatetime" ><strong >printk_convertTimestampToDatetime</strong></a>(timestamp, drift=None, uptime=None)</dt><dd ><tt >printk_convertTimestampToDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;local&nbsp;datetime&nbsp;object.<br />
+ <dl ><dt ><a name="-printk_convertTimestampToDatetime" ><strong >printk_convertTimestampToDatetime</strong></a>(timestamp, drift=None, uptime=None, fromTimestamp=None)</dt><dd ><tt >printk_convertTimestampToDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;local&nbsp;datetime&nbsp;object.<br />
 &nbsp;<br />
 @see&nbsp;printk_convertTimestampToEpoch<br />
 &nbsp;<br />
 @return&nbsp;-&nbsp;&lt;datetime.datetime&gt;&nbsp;-&nbsp;Datetime&nbsp;object&nbsp;in&nbsp;local&nbsp;time</tt></dd></dl>
- <dl ><dt ><a name="-printk_convertTimestampToEpoch" ><strong >printk_convertTimestampToEpoch</strong></a>(timestamp, drift=None, uptime=None)</dt><dd ><tt >printk_convertTimestampToEpoch&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;"seconds&nbsp;since&nbsp;epoch"&nbsp;time&nbsp;value<br />
+ <dl ><dt ><a name="-printk_convertTimestampToEpoch" ><strong >printk_convertTimestampToEpoch</strong></a>(timestamp, drift=None, uptime=None, fromTimestamp=None)</dt><dd ><tt >printk_convertTimestampToEpoch&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;"seconds&nbsp;since&nbsp;epoch"&nbsp;time&nbsp;value<br />
 &nbsp;<br />
 @param&nbsp;timestamp&nbsp;&lt;str/float&gt;&nbsp;-&nbsp;String/Float&nbsp;of&nbsp;the&nbsp;timestamp&nbsp;(e.x.&nbsp;[1234.14])<br />
+&nbsp;<br />
 @param&nbsp;drift&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;float&gt;&nbsp;-&nbsp;Given&nbsp;drift,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate&nbsp;a&nbsp;drift.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calculate&nbsp;drift&nbsp;first&nbsp;with&nbsp;printk_calculateDrift(s)<br />
+&nbsp;<br />
 @param&nbsp;uptime&nbsp;&nbsp;&nbsp;&nbsp;&lt;float&gt;&nbsp;-&nbsp;Current&nbsp;uptime&nbsp;for&nbsp;calcluation,&nbsp;or&nbsp;None&nbsp;to&nbsp;calculate.&nbsp;If&nbsp;calling&nbsp;often,&nbsp;calcluate&nbsp;first&nbsp;with&nbsp;getSystemUptime<br />
 &nbsp;<br />
+@param&nbsp;fromTimestamp&nbsp;&lt;float&gt;&nbsp;-&nbsp;The&nbsp;current&nbsp;timestamp&nbsp;(time.time()).&nbsp;If&nbsp;you&nbsp;are&nbsp;calling&nbsp;multiple&nbsp;times,&nbsp;you&nbsp;should&nbsp;provide&nbsp;this,&nbsp;and&nbsp;it&nbsp;should&nbsp;be&nbsp;generated&nbsp;at&nbsp;the&nbsp;same&nbsp;time&nbsp;you&nbsp;call&nbsp;getSystemUptime.<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;you&nbsp;provide&nbsp;an&nbsp;#uptime&nbsp;but&nbsp;fail&nbsp;to&nbsp;provide&nbsp;a&nbsp;#fromTimestamp,&nbsp;your&nbsp;timestamps&nbsp;will&nbsp;slowly&nbsp;drift&nbsp;and&nbsp;lose&nbsp;accuracy<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;because&nbsp;you&nbsp;will&nbsp;be&nbsp;comparing&nbsp;a&nbsp;former&nbsp;"uptime"&nbsp;value&nbsp;to&nbsp;an&nbsp;ever-changing&nbsp;"now".<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;So&nbsp;you&nbsp;should&nbsp;either&nbsp;calculate&nbsp;both&nbsp;like:<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uptime&nbsp;=&nbsp;<a href="#-getSystemUptime" >getSystemUptime</a>()<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fromTimestamp&nbsp;=&nbsp;time.time()<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;pass&nbsp;both&nbsp;along,&nbsp;or&nbsp;you&nbsp;should&nbsp;leave&nbsp;both&nbsp;as&nbsp;None&nbsp;to&nbsp;calculate&nbsp;both&nbsp;values&nbsp;at&nbsp;call-time.<br />
+&nbsp;<br />
 @return&nbsp;&lt;float&gt;&nbsp;-&nbsp;seconds&nbsp;since&nbsp;epoch.&nbsp;Can&nbsp;be&nbsp;used&nbsp;for&nbsp;a&nbsp;datetime.fromtimestamp</tt></dd></dl>
- <dl ><dt ><a name="-printk_convertTimestampToUTCDatetime" ><strong >printk_convertTimestampToUTCDatetime</strong></a>(timestamp, drift=None, uptime=None)</dt><dd ><tt >printk_convertTimestampToUTCDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;utc&nbsp;datetime&nbsp;object<br />
+ <dl ><dt ><a name="-printk_convertTimestampToUTCDatetime" ><strong >printk_convertTimestampToUTCDatetime</strong></a>(timestamp, drift=None, uptime=None, fromTimestamp=None)</dt><dd ><tt >printk_convertTimestampToUTCDatetime&nbsp;-&nbsp;Converts&nbsp;a&nbsp;printk&nbsp;timestamp&nbsp;to&nbsp;a&nbsp;utc&nbsp;datetime&nbsp;object<br />
 &nbsp;<br />
 @see&nbsp;printk_convertTimestampToEpoch<br />
 &nbsp;<br />
