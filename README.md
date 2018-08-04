@@ -11,7 +11,7 @@ As noted, dmesg -T is the same as dmesg\_format\_dates --drift=0  and become ina
 
 Thus, it is recommended to have a cron job that runs *printk\_mark\_drift* as described below, maybe on half-day intervals to keep things accurate. More or less depending on precision desired and average drift of system.
 
-You can use the *dmesg\_get\_drifts* application to show all current marked drifts to gauge how inaccurate your systems clock is
+You can use the *dmesg\_get\_drifts* application to show all current marked drifts to gauge how inaccurate your systems clock is.
 
 
 Sample
@@ -44,7 +44,30 @@ This application runs "dmesg" (or you can pipe in a pre-recorded dmesg, e.g. fro
 Run this command to output the kernel log replacing the printk timestamps with calculated timestamps (in one of several formats), taking into account drift.
 
 
-**printk_mark_drift**
+*Output*
+
+Supported output modes are:
+
+
+* **Local Time** (DEFAULT) \-l or \-\-local . Standard "ctime" format including local timezone information
+
+* **UTC** \-u or \-\-utc . Standard "ctime" format given in UTC (no timezone, also known as GMT or Zulu)
+
+* **Epoch** \-e or \-\-epoch . UNIX Epoch time. Given as number of seconds since Jan 1 1970
+
+
+*Subseconds*
+
+The output for local time and UTC are given in ctime format, which has a resolution of 1 second.
+
+You may also pass *\-s* or *\-\-subsec* to add subseconds to the output.
+
+This will output 2 significant digits of subseconds (accuracy +- 10ms) which is the maximum available from the uptime clock.
+
+Epoch mode always outputs subseconds.
+
+
+**printk\_mark\_drift**
 
 Adds a drift marker to the kmsg log. These are used to calculate the drift. The more of these you have, the more accurate your timestamps are within.
 
@@ -61,6 +84,11 @@ Use this to analyize how much your machine is drifting to determine how often yo
 **printk\_time\_convert**
 
 This application takes a single timestamp and converts it to either a local ctime, utc ctime, or epoch timestamp. It will add a drift note if a recent one is not available.
+
+
+*Output*
+
+Output modes for printk\_time\_convert are the same as dmesg\_format\_dates. See above for usage options, or \-\-help.
 
 
 **How can I configure my kmsg to log timestamps?**
