@@ -56,7 +56,9 @@ def printUsage():
 
        Output Format Option:
 
-           -s or --subsec          Output subseconds
+           -s or --subsec          Output subseconds.
+                                    Only is meaningful in "local" or "utc" output.
+                                    Epoch always contains subseconds
 
 
     Note that the max accuracy (if clock hasn't drifted at all since last drift mark) is +- 10ms or .01s
