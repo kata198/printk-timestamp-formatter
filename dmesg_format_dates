@@ -91,12 +91,12 @@ def readAllData(stream):
 
         @return - Data read off stream
     '''
-    
+
     if sys.version_info.major == 2:
         POSSIBLE_EOFS = ('', u'')
     else:
         POSSIBLE_EOFS = ('', b'')
-    
+
     isStreamClosed = lambda theStream : getattr(theStream, 'closed', False)
 
     if isStreamClosed(stream):
@@ -105,12 +105,12 @@ def readAllData(stream):
     retLst = []
 
     while True:
-        
+
         nextContents = stream.read()
 
         if isStreamClosed(stream) or nextContents in POSSIBLE_EOFS:
             break
-        
+
         retLst.append(nextContents)
 
     if not retLst:
@@ -118,6 +118,42 @@ def readAllData(stream):
 
     # Ensure we join with the correct type
     return type(retLst[0])().join(retLst)
+
+def rzfill(val, digits):
+    '''
+        rzfill - Add zeros to the end of #val such that at least #digits are displayed.
+
+                    Useful for post-decimal point values
+
+            @param val <str/int/float> - A number
+
+            @param digits <int> - The minimum number of digits. Zeros will be added to the right to meet this
+    '''
+
+    val = str(val)
+    valLen = len(val)
+    if valLen < digits:
+        val += '0' * ( digits - len(val) )
+    return val
+
+def dec_rzfill(val, digits):
+    '''
+        dec_rzfill - Adds zeros to the end of #val such that after the decimal point at least #digits are displayed.
+
+            This differs from the 'rzfill' function in that this function splits by the decimal point and
+              ensures that at least #digits number of digits are found after the decimal. rzfill works on whole numbers.
+
+          @see rzfill
+    '''
+    val = str(val)
+    if '.' not in val:
+       val += '.' + ( '0' * digits )
+    else:
+       valSplit = val.split('.')
+       valSplit[1] = rzfill(valSplit[1], digits)
+       val = '.'.join(valSplit)
+
+    return val
 
 
 if __name__ == '__main__':
@@ -251,14 +287,15 @@ if __name__ == '__main__':
     else:
         def timeAsStr(datetimeObj):
             subSeconds = str(int(float(datetimeObj.microsecond) / 10000.0))
-            subSeconds += '0' * (2 - len(subSeconds))
+            subSeconds = rzfill(subSeconds, 2)
+            #subSeconds += '0' * (2 - len(subSeconds))
 
             return datetimeObj.strftime(CTIME_FORMAT_NOYEAR) + ( ".%s %s" %(subSeconds, str(datetimeObj.year)) )
 
 
     # Get the selected timestamp output function
     if mode == MODE_EPOCH:
-        getTimePortion = lambda _printkSeconds, _currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp))
+        getTimePortion = lambda _printkSeconds, _currentDrift : dec_rzfill(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp), 2)
     elif mode == MODE_LOCAL:
         getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp) )
     else:
