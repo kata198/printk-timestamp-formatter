@@ -1,4 +1,4 @@
-* 4.0.0 - Aug 02 2018
+* 4.0.0 - Aug 04 2018
 
 - Change from using integers for calculating drift time to using floats with 2 significant digits past the decimal point (which is the same accuracy as /proc/uptime reports). This brings the maximum accuracy to around +- 10ms from +- 1s. We still only report time to the second-level, but this will better ensure that second-level reporting has more accuracy.
 
@@ -10,6 +10,13 @@ Also add a note to the help message that the timing is at best (excluding clock 
 
 - Some minor variable renaming/cleanup
 
+- Add a "fromTimestamp" argument (default None) to each of the printk_convertTimestampTo* functions.
+
+If we provide a fixed "uptime" value ( like in dmesg_format_dates so we don't recalculate the uptime for every line printed), previously for each timestamp converted ( each line printed ) we were regenerating a timestamp of "now" (time.time()). Because "uptime" was not changing but as execution time went on this "now" timestamp was changing, we were adding a small error which increased as time went on. This was not noticable before subsecond printing became available except in epoch mode. On my system, 100 sequential converts of the same printk timestamp with the same uptime caused a drift of .00013 seconds. This has been reduced to 0.
+
+- Update dmesg_format_dates to use the aforementioned "fromTimestamp", linking the pre-calculated "uptime" with the timestamp it was calculated at, removing drift in the subseconds portions.
+
+- Update printk_convertTimestampToEpoch to round the result to 2 decimal places. This is because we only have 2 significant digits available from the "uptime" clock, so anything past that was random variance. This brings the variance from sequential calls to dmesg_format_dates to 0 ( NO ERROR! ), whereas previously in epoch mode you could see a variance past the 2nd significant digit of the decimal portion.
 
 * 3.0.0 - Aug 31 2017
 
