@@ -183,13 +183,27 @@ def printk_calculateCurrentDrift(dmesgContents=None, maxDriftRedetectTime=PRINTK
     '''
     return printk_calculateDrifts(dmesgContents, onlyLatest=True, maxDriftRedetectTime=maxDriftRedetectTime)['latest']
 
-def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
+def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None, fromTimestamp=None):
     '''
         printk_convertTimestampToEpoch - Converts a printk timestamp to a "seconds since epoch" time value
 
         @param timestamp <str/float> - String/Float of the timestamp (e.x. [1234.14])
+
         @param drift     <float> - Given drift, or None to calculate a drift. If calling often, calculate drift first with printk_calculateDrift(s)
+
         @param uptime    <float> - Current uptime for calcluation, or None to calculate. If calling often, calcluate first with getSystemUptime
+
+        @param fromTimestamp <float> - The current timestamp (time.time()). If you are calling multiple times, you should provide this, and it should be generated at the same time you call getSystemUptime.
+
+            If you provide an #uptime but fail to provide a #fromTimestamp, your timestamps will slowly drift and lose accuracy
+             because you will be comparing a former "uptime" value to an ever-changing "now".
+
+            So you should either calculate both like:
+
+              uptime = getSystemUptime()
+              fromTimestamp = time.time()
+
+            and pass both along, or you should leave both as None to calculate both values at call-time.
 
         @return <float> - seconds since epoch. Can be used for a datetime.fromtimestamp
     '''
@@ -206,13 +220,16 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None):
     else:
         uptime = float(uptime)
 
-    now = float(time.time())
+    if fromTimestamp is None:
+        now = float(time.time())
+    else:
+        now = fromTimestamp
 
     msgTime = now - (uptime - secondsSinceUptime)
 
     return msgTime
 
-def printk_convertTimestampToDatetime(timestamp, drift=None, uptime=None):
+def printk_convertTimestampToDatetime(timestamp, drift=None, uptime=None, fromTimestamp=None):
     '''
         printk_convertTimestampToDatetime - Converts a printk timestamp to a local datetime object.
 
@@ -220,11 +237,11 @@ def printk_convertTimestampToDatetime(timestamp, drift=None, uptime=None):
 
         @return - <datetime.datetime> - Datetime object in local time
     '''
-    msgTime = printk_convertTimestampToEpoch(timestamp, drift, uptime)
+    msgTime = printk_convertTimestampToEpoch(timestamp, drift, uptime, fromTimestamp)
     dateTimeObj = datetime.datetime.fromtimestamp(msgTime)
     return dateTimeObj
     
-def printk_convertTimestampToUTCDatetime(timestamp, drift=None, uptime=None):
+def printk_convertTimestampToUTCDatetime(timestamp, drift=None, uptime=None, fromTimestamp=None):
     '''
         printk_convertTimestampToUTCDatetime - Converts a printk timestamp to a utc datetime object
 
@@ -232,7 +249,7 @@ def printk_convertTimestampToUTCDatetime(timestamp, drift=None, uptime=None):
 
         @return - <datetime.datetime> - Datetime object in utc time
     '''
-    msgTime = printk_convertTimestampToEpoch(timestamp, drift, uptime)
+    msgTime = printk_convertTimestampToEpoch(timestamp, drift, uptime, fromTimestamp)
     dateTimeObj = datetime.datetime.utcfromtimestamp(msgTime)
     return dateTimeObj
 
