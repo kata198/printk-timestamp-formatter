@@ -7,6 +7,7 @@ import copy
 import errno
 import sys
 import subprocess
+import time
 import traceback
 
 import printk_timestamp_converter
@@ -236,7 +237,7 @@ if __name__ == '__main__':
             sys.stderr.flush()
 
             
-
+    nowTimestamp = time.time()
     currentUptime = printk_timestamp_converter.getSystemUptime()
 
     # Convert to tuple here for array index performance
@@ -257,11 +258,11 @@ if __name__ == '__main__':
 
     # Get the selected timestamp output function
     if mode == MODE_EPOCH:
-        getTimePortion = lambda _printkSeconds, _currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime))
+        getTimePortion = lambda _printkSeconds, _currentDrift : str(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp))
     elif mode == MODE_LOCAL:
-        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime) )
+        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp) )
     else:
-        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToUTCDatetime(_printkSeconds, _currentDrift, currentUptime) )
+        getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToUTCDatetime(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp) )
 
     if not contentsSplit[-1]:
         contentsSplit = contentsSplit[:-1]
