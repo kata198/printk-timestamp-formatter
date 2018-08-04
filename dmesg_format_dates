@@ -248,7 +248,7 @@ if __name__ == '__main__':
         CTIME_FORMAT_YEAR = CTIME_FORMAT_NOYEAR + ' %Y'
         timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_YEAR)
     else:
-        timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_NOYEAR) + ('%.2f %s' %(float(datetimeObj.microsecond) / 100.0 - int(datetimeObj.microsecond / 100.0), str(datetimeObj.year) ))[1:]
+        timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_NOYEAR) + ('%.4f %s' %(float(datetimeObj.microsecond) / 10000.0 - int(datetimeObj.microsecond / 10000.0), str(datetimeObj.year) ))[1:]
 
 
     # Get the selected timestamp output function
