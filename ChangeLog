@@ -18,6 +18,9 @@ If we provide a fixed "uptime" value ( like in dmesg_format_dates so we don't re
 
 - Update printk_convertTimestampToEpoch to round the result to 2 decimal places. This is because we only have 2 significant digits available from the "uptime" clock, so anything past that was random variance. This brings the variance from sequential calls to dmesg_format_dates to 0 ( NO ERROR! ), whereas previously in epoch mode you could see a variance past the 2nd significant digit of the decimal portion.
 
+- Update printk_time_convert to have all the output updates that dmesg_format_dates has gotten in this version
+
+
 * 3.0.0 - Aug 31 2017
 
 * output warnings prefixed with ## WARNING: first on stderr then on
