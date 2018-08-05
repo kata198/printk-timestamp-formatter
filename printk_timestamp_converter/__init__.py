@@ -13,6 +13,8 @@ import sys
 import time
 import subprocess
 
+from .clock_compat import _getSystemUptime, UPTIME_SIG_DECIMALS
+
 PRINTK_DRIFT_MSG = '=== Detecting printk drift:'
 
 # In below patterns, capture only the first 2 digits of the printk clock (to match significant digits of uptime clock)
@@ -25,7 +27,9 @@ PRINTK_WITH_TIME_PATTERN = re.compile('^(\[[ ]*)(?P<printk_seconds>[\d]+[\.][\d]
 
 PRINTK_DRIFT_REDETECT_TIME = 12000 # seconds
 
-__all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')
+SUBSEC_ACCURACY = UPTIME_SIG_DECIMALS // 2
+
+__all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift', 'UPTIME_SIG_DECIMALS', 'SUBSEC_ACCURACY')
 
 __version__ = '4.0.0'
 __version_tuple__ = (4, 0, 0)
@@ -37,10 +41,16 @@ class NotRecentEnoughDriftDelta(Exception):
     '''
     pass
 
-# TODO: For a future version, investigate using clock_gettime(CLOCK_MONOTONIC) which is the uptime clock
-#         but with a much higher accuracy. Function is not available in python2, but should be able to
-#         use ctypes and the librt.so directly to emulate on python2
+
 def getSystemUptime():
+    '''
+        getSystemUptime - Gets system uptime in seconds
+
+        @return <float> - Seconds of uptime
+    '''
+    return _getSystemUptime()
+
+def getSystemUptime2():
     '''
         getSystemUptime - Gets system uptime in seconds
 
@@ -49,7 +59,6 @@ def getSystemUptime():
     with open('/proc/uptime', 'r') as procUptime:
         uptime = float(procUptime.read().split(' ')[0])
     return uptime
-    
 
 defaultEncoding = sys.getdefaultencoding()
 if bytes == str:
@@ -230,8 +239,8 @@ def printk_convertTimestampToEpoch(timestamp, drift=None, uptime=None, fromTimes
 
     msgTime = now - (uptime - secondsSinceUptime)
 
-    # We only have 2 significant digits because that's what uptime provides
-    return round(msgTime, 2)
+    # Round to max constant accuracy as provided by uptime clock
+    return round(msgTime, SUBSEC_ACCURACY)
 
 def printk_convertTimestampToDatetime(timestamp, drift=None, uptime=None, fromTimestamp=None):
     '''
