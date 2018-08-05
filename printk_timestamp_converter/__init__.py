@@ -1,4 +1,4 @@
-# Copyright (c) 2015, 2016, 2017 Tim Savannah under LGPLv3.
+# Copyright (c) 2015, 2016, 2017, 2018 Tim Savannah under LGPLv3.
 # You should have received a copy of this with this distribution as LICENSE
 #
 # This provides a library for dealing with printk drift between actual uptime.
@@ -27,8 +27,8 @@ PRINTK_DRIFT_REDETECT_TIME = 12000 # seconds
 
 __all__ = ('NotRecentEnoughDriftDelta', 'getSystemUptime', 'printk_calculateCurrentDrift' ,'printk_calculateDrifts', 'printk_calculateDrift', 'printk_convertTimestampToDatetime', 'printk_convertTimestampToUTCDatetime', 'printk_convertTimestampToEpoch', 'printk_markCurrentDrift')
 
-__version__ = '3.0.0'
-__version_tuple__ = (3, 0, 0)
+__version__ = '4.0.0'
+__version_tuple__ = (4, 0, 0)
 
 
 class NotRecentEnoughDriftDelta(Exception):
