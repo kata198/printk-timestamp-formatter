@@ -5,12 +5,15 @@
 #  adjusting for drift between the time systems.
 import copy
 import errno
+import math
 import sys
 import subprocess
 import time
 import traceback
 
 import printk_timestamp_converter
+
+SUBSEC_ACCURACY = printk_timestamp_converter.SUBSEC_ACCURACY
 
 defaultEncoding = sys.getdefaultencoding()
 if bytes == str:
@@ -286,16 +289,15 @@ if __name__ == '__main__':
         timeAsStr = lambda datetimeObj : datetimeObj.strftime(CTIME_FORMAT_YEAR)
     else:
         def timeAsStr(datetimeObj):
-            subSeconds = str(int(float(datetimeObj.microsecond) / 10000.0))
-            subSeconds = rzfill(subSeconds, 2)
-            #subSeconds += '0' * (2 - len(subSeconds))
+            subSeconds = str(int(float(datetimeObj.microsecond) / 100.0))
+            subSeconds = rzfill(subSeconds, SUBSEC_ACCURACY)
 
             return datetimeObj.strftime(CTIME_FORMAT_NOYEAR) + ( ".%s %s" %(subSeconds, str(datetimeObj.year)) )
 
 
     # Get the selected timestamp output function
     if mode == MODE_EPOCH:
-        getTimePortion = lambda _printkSeconds, _currentDrift : dec_rzfill(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp), 2)
+        getTimePortion = lambda _printkSeconds, _currentDrift : dec_rzfill(printk_timestamp_converter.printk_convertTimestampToEpoch(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp), SUBSEC_ACCURACY)
     elif mode == MODE_LOCAL:
         getTimePortion = lambda _printkSeconds, _currentDrift : timeAsStr ( printk_timestamp_converter.printk_convertTimestampToDatetime(_printkSeconds, _currentDrift, currentUptime, fromTimestamp=nowTimestamp) )
     else:
