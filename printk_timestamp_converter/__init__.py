@@ -37,6 +37,9 @@ class NotRecentEnoughDriftDelta(Exception):
     '''
     pass
 
+# TODO: For a future version, investigate using clock_gettime(CLOCK_MONOTONIC) which is the uptime clock
+#         but with a much higher accuracy. Function is not available in python2, but should be able to
+#         use ctypes and the librt.so directly to emulate on python2
 def getSystemUptime():
     '''
         getSystemUptime - Gets system uptime in seconds
